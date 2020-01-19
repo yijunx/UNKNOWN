@@ -1,4 +1,7 @@
 from pytrends.request import TrendReq
+from datetime import datetime
+from datetime import timedelta
+import sys
 import os
 
 
@@ -9,6 +12,10 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
     :param time_frame: Specific dates, 'YYYY-MM-DD YYYY-MM-DD' example '2016-12-14 2017-01-25'
     :param geo:
     :param save_folder_link:
+
+    # notes on the keywords:
+    last time used:
+    ['AMGN','CELG','BIIB','GILD','REGN']
 
     # notes in the timeframe
 
@@ -38,7 +45,7 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
 
     For example: 'now 1-H' would get data from the last hour
     Seems to only work for 1, 4 hours only
-    :return:
+    :return: DataFrame
     """
     pytrends = TrendReq(hl='en-US', tz=360)  # tz is time zone offset in minutes
     pytrends.build_payload(keywords_list, cat=0, timeframe=time_frame, geo=geo, gprop='')
@@ -50,12 +57,40 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
     # print(interest_over_time_df.tail())
     if save_folder_link:
         interest_over_time_df.to_csv(os.path.join(save_folder_link, f'haha.csv'))
-
+    print(f'Total lines: {len(interest_over_time_df)}')
+    print(interest_over_time_df)
     return interest_over_time_df
 
+
 if __name__ == "__main__":
-    pull_keywords_trend(keywords_list=['apple', 'pear'],
-                        time_frame='today 5-y',
+
+    # the system input position starts with 1
+    number_of_weeks = int(sys.argv[1])
+
+    # weeks offset is the send offset number
+    weeks_past_offset = int(sys.argv[2])
+
+    # suppose this code in run each week, on Saturday or Sunday night, or Monday night to give the result
+    # get end day
+    end_date = datetime.today() - timedelta(days=weeks_past_offset * 7)
+    end_date = end_date.strftime('%Y-%m-%d')
+    # get the start day
+    start_date = datetime.today() - timedelta(days=number_of_weeks * 7) - timedelta(days=weeks_past_offset * 7)
+    start_date = start_date.strftime('%Y-%m-%d')
+
+    # form the time_frame
+    time_frame = f'{start_date} {end_date}'
+
+    # print some basic information
+    print()  # leave some space here
+    print(f'Pulling {number_of_weeks} weeks data, with {weeks_past_offset} weeks from now')
+    print(f'End is {end_date}')
+    print(f'Start date is {start_date}')
+
+    # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
+    # before the decision is made
+    pull_keywords_trend(keywords_list=['AMGN', 'CELG', 'BIIB', 'GILD', 'REGN'],
+                        time_frame=time_frame,
                         save_folder_link=r'/Users/yijunxu/Dropbox/UNKNOWN_RESULTS')
 
 
