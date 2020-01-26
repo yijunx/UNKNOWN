@@ -1,17 +1,19 @@
 from pytrends.request import TrendReq
 from datetime import datetime
 from datetime import timedelta
+import pandas as pd
 import sys
 import os
 
 
-def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=None):
+def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=None, relative_to_each_other=True):
     """
 
     :param keywords_list: up to 5
     :param time_frame: Specific dates, 'YYYY-MM-DD YYYY-MM-DD' example '2016-12-14 2017-01-25'
     :param geo:
     :param save_folder_link:
+    :param relative_to_each_other:
 
     # notes on the keywords:
     last time used:
@@ -48,13 +50,19 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
     :return: DataFrame
     """
     pytrends = TrendReq(hl='en-US', tz=360)  # tz is time zone offset in minutes
-    pytrends.build_payload(keywords_list, cat=0, timeframe=time_frame, geo=geo, gprop='')
-    interest_over_time_df = pytrends.interest_over_time()
+    if relative_to_each_other:
+        pytrends.build_payload(keywords_list, cat=0, timeframe=time_frame, geo=geo, gprop='')
+        interest_over_time_df = pytrends.interest_over_time()
+    else:
+        print('means that the keywords will be pulled one by one.. with each one has a 100, in the period')
+        interest_over_time_df = pd.DataFrame()
+        for keyword in keywords_list:
+            pytrends.build_payload([keyword], cat=0, timeframe=time_frame, geo=geo, gprop='')
+            if len(interest_over_time_df):
+                interest_over_time_df = pytrends.interest_over_time()
+            else:
+                interest_over_time_df[keyword] = pytrends.interest_over_time()[keyword]
 
-    # now we need to save them, instead of pulling them all the time
-    # we need to save the them as a scheduled task, run every week / day depending on the training...
-    # let's try day
-    # print(interest_over_time_df.tail())
     if save_folder_link:
         interest_over_time_df.to_csv(os.path.join(save_folder_link, f'haha.csv'))
     print(f'Total lines: {len(interest_over_time_df)}')

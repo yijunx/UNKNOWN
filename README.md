@@ -17,5 +17,6 @@ study NLP probably SPARK -  till end of jun20
 study TF - till end of sep20
 
 integrate and prototype - till dec20
+wow i got a proper markdown
 
 
