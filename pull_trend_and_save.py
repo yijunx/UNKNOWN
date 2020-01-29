@@ -6,13 +6,17 @@ import sys
 import os
 
 
-def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=None, relative_to_each_other=True):
+def pull_keywords_trend(keywords_list,
+                        time_frame,
+                        geo='US',
+                        save_path=None,
+                        relative_to_each_other=True):
     """
 
     :param keywords_list: up to 5
     :param time_frame: Specific dates, 'YYYY-MM-DD YYYY-MM-DD' example '2016-12-14 2017-01-25'
     :param geo:
-    :param save_folder_link:
+    :param save_path: the path to save, optional
     :param relative_to_each_other:
 
     # notes on the keywords:
@@ -49,6 +53,7 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
     Seems to only work for 1, 4 hours only
     :return: DataFrame
     """
+    # , proxies=['https://35.201.123.31:880', ]
     pytrends = TrendReq(hl='en-US', tz=360)  # tz is time zone offset in minutes
     if relative_to_each_other:
         pytrends.build_payload(keywords_list, cat=0, timeframe=time_frame, geo=geo, gprop='')
@@ -58,47 +63,77 @@ def pull_keywords_trend(keywords_list, time_frame, geo='US', save_folder_link=No
         interest_over_time_df = pd.DataFrame()
         for keyword in keywords_list:
             pytrends.build_payload([keyword], cat=0, timeframe=time_frame, geo=geo, gprop='')
-            if len(interest_over_time_df):
+            if len(interest_over_time_df) == 0:
                 interest_over_time_df = pytrends.interest_over_time()
             else:
                 interest_over_time_df[keyword] = pytrends.interest_over_time()[keyword]
 
-    if save_folder_link:
-        interest_over_time_df.to_csv(os.path.join(save_folder_link, f'haha.csv'))
+    if save_path:
+        interest_over_time_df.to_csv(save_path)
     print(f'Total lines: {len(interest_over_time_df)}')
     print(interest_over_time_df)
     return interest_over_time_df
 
 
+def pull_all_inputs_date(number_of_training_sets=20, days_frequency=7, stock_name=None, keyworks=None):
+    """
+    here is the place the gather all the study DATA!!!
+    to feed the analyze kit
+    :param number_of_training_sets:
+    :param days_frequency:
+    :param stock_name:
+    :param keyworks:
+    :return:
+    """
+
+    # this thing one shot pulls everying
+    # they why a progress bar is needed here
+    # suppose we pull 20 sets
+    # it will form a folder
+    # and generates all the input data
+
+
+    # then we can use analyse on the data,
+    # plots or other stuff to see whether there is any relaction
+
+    return 0
+
 if __name__ == "__main__":
+    # date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
 
     # the system input position starts with 1
-    number_of_weeks = int(sys.argv[1])
+    number_of_weeks = int(sys.argv[1])  # make the string into an integer
 
     # weeks offset is the send offset number
-    weeks_past_offset = int(sys.argv[2])
+    # dont use weeks offset any mmore
+    input_date = sys.argv[2]  # which is string
+    end_date = datetime.strptime(input_date, '%Y-%m-%d')
 
-    # suppose this code in run each week, on Saturday or Sunday night, or Monday night to give the result
-    # get end day
-    end_date = datetime.today() - timedelta(days=weeks_past_offset * 7)
-    end_date = end_date.strftime('%Y-%m-%d')
     # get the start day
-    start_date = datetime.today() - timedelta(days=number_of_weeks * 7) - timedelta(days=weeks_past_offset * 7)
+    start_date = end_date - timedelta(days=number_of_weeks * 7)
+
+    # conversion both to string so that we can pass to the pytrend.. (date to string.. string to date)
     start_date = start_date.strftime('%Y-%m-%d')
+    end_date = end_date.strftime('%Y-%m-%d')
 
     # form the time_frame
     time_frame = f'{start_date} {end_date}'
 
     # print some basic information
     print()  # leave some space here
-    print(f'Pulling {number_of_weeks} weeks data, with {weeks_past_offset} weeks from now')
-    print(f'End is {end_date}')
+    print(f'Pulling {number_of_weeks} weeks data, end at {input_date}')
+    print(f'End is {input_date}')
     print(f'Start date is {start_date}')
 
     # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
     # before the decision is made
+    # generate the save path
+    save_path = os.path.join(r'/Users/yijunxu/Dropbox/UNKNOWN_RESULTS',
+                             f'pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks')
+
     pull_keywords_trend(keywords_list=['AMGN', 'CELG', 'BIIB', 'GILD', 'REGN'],
                         time_frame=time_frame,
-                        save_folder_link=r'/Users/yijunxu/Dropbox/UNKNOWN_RESULTS')
+                        save_path=save_path,
+                        relative_to_each_other=False)
 
 
