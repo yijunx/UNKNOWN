@@ -4,6 +4,8 @@ from datetime import timedelta
 import pandas as pd
 import sys
 import os
+import pathlib
+from supports import general_path
 
 
 def pull_keywords_trend(keywords_list,
@@ -75,29 +77,6 @@ def pull_keywords_trend(keywords_list,
     return interest_over_time_df
 
 
-def pull_all_inputs_date(number_of_training_sets=20, days_frequency=7, stock_name=None, keyworks=None):
-    """
-    here is the place the gather all the study DATA!!!
-    to feed the analyze kit
-    :param number_of_training_sets:
-    :param days_frequency:
-    :param stock_name:
-    :param keyworks:
-    :return:
-    """
-
-    # this thing one shot pulls everying
-    # they why a progress bar is needed here
-    # suppose we pull 20 sets
-    # it will form a folder
-    # and generates all the input data
-
-
-    # then we can use analyse on the data,
-    # plots or other stuff to see whether there is any relaction
-
-    return 0
-
 if __name__ == "__main__":
     # date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
 
@@ -128,8 +107,8 @@ if __name__ == "__main__":
     # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
     # before the decision is made
     # generate the save path
-    save_path = os.path.join(r'/Users/yijunxu/Dropbox/UNKNOWN_RESULTS',
-                             f'pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks')
+    save_path = os.path.join(general_path(),
+                             f'pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv')
 
     pull_keywords_trend(keywords_list=['AMGN', 'CELG', 'BIIB', 'GILD', 'REGN'],
                         time_frame=time_frame,
