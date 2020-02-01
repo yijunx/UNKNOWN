@@ -16,6 +16,7 @@ def pull_all_inputs_date(last_day,
     """
     here is the place the gather all the study DATA!!!
     to feed the analyze kit
+    :param last_day: the string date with yyyy-mm-dd
     :param number_of_training_sets:
     :param days_frequency:
     :param stock_name:

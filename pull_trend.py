@@ -53,6 +53,10 @@ def pull_keywords_trend(keywords_list,
 
     For example: 'now 1-H' would get data from the last hour
     Seems to only work for 1, 4 hours only
+
+    35 weeks is by day
+    50 weeks is by week
+
     :return: DataFrame
     """
     # , proxies=['https://35.201.123.31:880', ]
