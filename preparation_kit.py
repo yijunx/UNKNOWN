@@ -1,12 +1,17 @@
 import pandas as pd
 from supports import general_path
 import os
-
+import numpy as np
 
 def read_trend(trend_file_name):
     # pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv
     df = pd.read_csv(os.path.join(general_path(), trend_file_name), index_col=0)
     df.index = pd.to_datetime(df.index)
+
+    # now i need to scale the trend
+    for col in df.columns:
+        if col != 'isPartial':
+            df[col] = df[col] / 100
     return df
 
 
@@ -51,7 +56,10 @@ def first_pass_analysis(trend_file_name=None, stock_file_name=None):
     return trend_stock_df
 
 
-def form_x_y(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
+def form_X_y_from_weekly_data():
+    return 0
+
+def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -89,7 +97,9 @@ def form_x_y(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
     trend_stock_df.loc[trend_stock_df.index[0], 'week_diff'] = 0.0
 
     trend_stock_df['week_number'] = trend_stock_df['week_diff'].cumsum()
+    trend_stock_df['week_number'] = trend_stock_df['week_number'].apply(int)
 
+    print(trend_stock_df.head())
     # so now we can have week summary
     # need to get the week number, the weeks open date, the weeks open, close, high, low, and number of weeks, included
     # then we go and find out the corresponding inputs
@@ -115,13 +125,14 @@ def form_x_y(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
     # let do a rename of the columns
     # now lets form the ys
 
-    # these are the Ys we predict
-    week_summary['close_open'] = week_summary.Close - week_summary.Open
-    week_summary['close_low'] = week_summary.Close - week_summary.Low
-    week_summary['high_close'] = week_summary.High - week_summary.Close
+    # these are the Ys we predict, and we need to scale them
+    week_summary['close_open'] = week_summary.Close - week_summary.Open  # can be easily 1 or 0 it is binary
+    week_summary['close_open'] = [0 if x > 0 else 1 for x in week_summary['close_open']]
+    week_summary['close_low'] = (week_summary.Close - week_summary.Low) / week_summary.Open
+    week_summary['high_close'] = (week_summary.High - week_summary.Close) / week_summary.Open
     week_summary['decision'] = ['short' if high_range > low_range else 'long'
                                 for high_range, low_range
-                                in zip(week_summary.high_close, week_summary.close_low)]
+                                in zip(week_summary.high_close, week_summary.close_low)]  # this one can also be binary
 
     # if high-close > clow-low: means close has a bigger gap toward high, so we should short, at position high
     # close the position at predicted close price, if cannot close? we set a max loss controller
@@ -136,27 +147,38 @@ def form_x_y(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
     # and set the sell price at open + delta(close - open)
 
     # now based on the weeks to predict to get all the Xs and Ys
-    starting_week_number = week_summary.index[weeks_to_predit]
+    starting_week_number = week_summary.index[weeks_to_predit - 1]
     week_summary = week_summary[starting_week_number:]
 
     inputs = []
     targets = []
+    week_numbers = []
 
     for index, row in week_summary.iterrows():
-        print('d')
+
         # now lets prepare
-        input = trend_stock_df[trend_stock_df.week_number == index][trend_columns].copy()
-        target = [row.close_open, row.close_low, row.high_close]
+        an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predit, index))][trend_columns]
+        # make an_input to a list of numbers
+        an_input = np.array(an_input).flatten()
 
-        inputs.append(input)
-        targets.append(target)
+        # let's use close minus open first
+        a_target = row.close_open
 
+        inputs.append(an_input)
+        targets.append(a_target)
+        week_numbers.append(index)
 
+    # let's make some documentation before dive into the machine learing part
     # Ys can be
     print(week_summary.tail())
     print(week_summary.head())
+
+    # so i need to make x numpy arrays first
+    # then collapse x into a single array
+    # and put x together
+    # and pass to tts, the clf
     print(f'total number of weeks is {len(week_summary)}')
 
-    return inputs, targets
+    return np.stack(tuple(inputs)), targets, week_numbers
 
 
