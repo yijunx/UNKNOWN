@@ -37,7 +37,7 @@ def train_and_predict(X, y, test_size=0.8):
 
     # random_state=0
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
-    clf = RandomForestClassifier(max_depth=10, n_estimators=100, max_features=10)
+    clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1,max_iter=1000)
     clf.fit(X_train, y_train)
     return clf.score(X_test, y_test)
 
@@ -58,7 +58,7 @@ def train_and_predict_one_by_one(X, y, test_size=0.8):
 
     # random_state=0
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8)
-    clf = RandomForestClassifier(max_depth=10, n_estimators=100, max_features=10)
+    clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(5, 2), random_state=1, max_iter=2000)
     # clf.fit(X_train, y_train)
 
     correct_ones = 0

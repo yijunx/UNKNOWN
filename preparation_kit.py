@@ -2,6 +2,8 @@ import pandas as pd
 from supports import general_path
 import os
 import numpy as np
+from datetime import timedelta
+
 
 def read_trend(trend_file_name):
     # pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv
@@ -22,6 +24,7 @@ def read_stock(stock_file_name):
 
 
 def first_pass_analysis(trend_file_name=None, stock_file_name=None):
+    # not really used
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -56,10 +59,92 @@ def first_pass_analysis(trend_file_name=None, stock_file_name=None):
     return trend_stock_df
 
 
-def form_X_y_from_weekly_data():
-    return 0
+def give_week_number_to_dataframe(df):
+    # now lets make them into weeks info
 
-def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predit=4):
+    df['week'] = [x.date().isocalendar()[1] for x in df.index]
+
+    # so now lets chop into weeks
+    df['week_diff'] = df.week.diff()
+    df['week_diff'] = [x if x == 0 else 1.0 for x in df['week_diff']]
+    df.loc[df.index[0], 'week_diff'] = 0.0
+
+    df['week_number'] = df['week_diff'].cumsum()
+    df['week_number'] = df['week_number'].apply(int)
+    return df
+
+
+def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4):
+    if trend_file_name is None:
+        trend_file_name = 'pulled_at_2020-02-07_end_at_2020-2-7_for_100_weeks.csv'
+
+    if stock_file_name is None:
+        stock_file_name = 'stock_end_at_2020-2-7_for_100_weeks.csv'
+
+    # read trend
+    trend = read_trend(trend_file_name)
+
+    # read stock
+    stock = read_stock(stock_file_name)
+
+    # pd.date_range('09-01-2013', '09-30-2013')
+    # actually it is string from time
+    stock_start_date = stock.index[0].strftime('%Y-%m-%d')
+    stock_end_date = stock.index[-1].strftime('%Y-%m-%d')
+    full_date_stock_df = pd.DataFrame(index=pd.date_range(start=stock_start_date,
+                                                          end=stock_end_date))
+    for col in stock.columns:
+        full_date_stock_df[col] = stock[col]
+
+    full_date_stock_df = give_week_number_to_dataframe(full_date_stock_df)
+
+    week_summary = full_date_stock_df.groupby(['week_number']).agg({
+        'week': 'count',
+        'High': 'max',
+        'Low': 'min',
+    })
+
+    week_summary = week_summary[week_summary.week >= 5]
+    week_summary['Open_date'] = [full_date_stock_df.loc[full_date_stock_df.week_number == week_no, :].apply(pd.Series.first_valid_index).Open
+                                 for week_no in week_summary.index]
+    week_summary['Open'] = [full_date_stock_df.loc[date, 'Open'] for date in week_summary.Open_date]
+
+    week_summary['Close_date'] = [full_date_stock_df.loc[full_date_stock_df.week_number == week_no, :].apply(pd.Series.last_valid_index).Close
+                                  for week_no in week_summary.index]
+    week_summary['Close'] = [full_date_stock_df.loc[date, 'Close'] for date in week_summary.Close_date]
+    week_summary['close_open'] = week_summary.Close - week_summary.Open  # can be easily 1 or 0 it is binary
+    week_summary['close_open'] = [0 if x > 0 else 1 for x in week_summary['close_open']]
+
+    # now , lets clear based on the week summary to find out the x data frame
+    # then we flatten x, then we can pass it to the solver
+
+    inputs = []
+    targets = []
+    week_info = []
+
+    for index, row in week_summary.iterrows():
+        # date_mask = (trend.index > row.Open_date - timedelta(days=7 * weeks_to_predit)) & (trend)
+        if len(trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :]) >= weeks_to_predict:
+            # lets get the date range...
+            # date_mask = (data.index > start) & (data.index < end)
+            # dates = data.index[date_mask]
+
+            an_input = trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :].drop(columns=['isPartial'])
+            # make an_input to a list of numbers
+            an_input = np.array(an_input).flatten()
+
+
+            # let's use close minus open first
+            a_target = row.close_open
+
+            inputs.append(an_input)
+            targets.append(a_target)
+            week_info.append(row)
+
+    return np.stack(tuple(inputs)), targets, week_info
+
+
+def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -147,7 +232,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     # and set the sell price at open + delta(close - open)
 
     # now based on the weeks to predict to get all the Xs and Ys
-    starting_week_number = week_summary.index[weeks_to_predit - 1]
+    starting_week_number = week_summary.index[weeks_to_predict - 1]
     week_summary = week_summary[starting_week_number:]
 
     inputs = []
@@ -157,7 +242,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     for index, row in week_summary.iterrows():
 
         # now lets prepare
-        an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predit, index))][trend_columns]
+        an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predict, index))][trend_columns]
         # make an_input to a list of numbers
         an_input = np.array(an_input).flatten()
 
