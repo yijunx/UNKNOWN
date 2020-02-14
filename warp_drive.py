@@ -1,9 +1,3 @@
-# this is the machine learning block
-# where models are trained, saved, and tested
-# we will make sure the cpu is 100% running, all the time, and with the right experiment design
-# we will find the right pattern
-
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.colors import ListedColormap
@@ -106,6 +100,7 @@ def train_and_predict(X, y, test_size=0.8):
     clf.fit(X_train, y_train)
     return clf.score(X_test, y_test)
 
+
 def train(X, y, test_size=0.8):
 
     classifiers = [
@@ -127,6 +122,7 @@ def train(X, y, test_size=0.8):
     clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1,max_iter=1000)
     clf.fit(X_train, y_train)
     return clf
+
 
 def train_and_predict_one_by_one(X, y, weeks, test_size=0.8):
 

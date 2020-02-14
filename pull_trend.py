@@ -75,7 +75,7 @@ def pull_keywords_trend(keywords_list,
                 interest_over_time_df[keyword] = pytrends.interest_over_time()[keyword]
 
     # now lets check if it is by week or by day
-    a_delta = interest_over_time_df.index[1] - interest_over_time_df.index[1]
+    a_delta = interest_over_time_df.index[1] - interest_over_time_df.index[0]
     if a_delta.days > 1:
         by_day = False
         print('This trend is by week')

@@ -188,8 +188,6 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     # so now we can have week summary
     # need to get the week number, the weeks open date, the weeks open, close, high, low, and number of weeks, included
     # then we go and find out the corresponding inputs
-
-
     week_summary = trend_stock_df.groupby(['week_number']).agg({
         'week': 'count',
         'High': 'max',
