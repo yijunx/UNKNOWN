@@ -5,7 +5,7 @@ from datetime import datetime
 from datetime import timedelta
 import os
 import pathlib
-
+# this guy has been abandoned
 
 def pull_all_inputs_date(last_day,
                          stock_name,

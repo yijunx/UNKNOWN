@@ -76,7 +76,7 @@ def give_week_number_to_dataframe(df):
 
 def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4):
     if trend_file_name is None:
-        trend_file_name = 'pulled_at_2020-02-07_end_at_2020-2-7_for_100_weeks.csv'
+        trend_file_name = 'pulled_at_2020-02-10_end_at_2020-2-7_for_100_weeks.csv'
 
     if stock_file_name is None:
         stock_file_name = 'stock_end_at_2020-2-7_for_100_weeks.csv'

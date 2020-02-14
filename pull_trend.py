@@ -111,10 +111,17 @@ if __name__ == "__main__":
     # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
     # before the decision is made
     # generate the save path
-    save_path = os.path.join(general_path(),
-                             f'pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv')
 
-    pull_keywords_trend(keywords_list=['AMGN', 'CELG', 'BIIB', 'GILD', 'REGN'],
+    # pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv
+    keywords_list = ['biotech', 'coronavirus', 'crisis']
+    save_path = os.path.join(general_path(),
+                             f'{"_".join(keywords_list)}.csv')
+
+    # composition names
+    # ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN']
+    # more composition names
+    # ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    pull_keywords_trend(keywords_list=keywords_list,
                         time_frame=time_frame,
                         save_path=save_path,
                         relative_to_each_other=False)

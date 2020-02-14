@@ -37,12 +37,14 @@ def train_and_predict(X, y, test_size=0.8):
 
     # random_state=0
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    print(f'train size is {len(X_train)}')
+    print(f'test size is {len(X_test)}')
     clf = MLPClassifier(solver='lbfgs', alpha=1e-5, hidden_layer_sizes=(5, 2), random_state=1,max_iter=1000)
     clf.fit(X_train, y_train)
     return clf.score(X_test, y_test)
 
 
-def train_and_predict_one_by_one(X, y, test_size=0.8):
+def train_and_predict_one_by_one(X, y, weeks, test_size=0.8):
 
     classifiers = [
     KNeighborsClassifier(3),
@@ -58,12 +60,15 @@ def train_and_predict_one_by_one(X, y, test_size=0.8):
 
     # random_state=0
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.8)
-    clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(5, 2), random_state=1, max_iter=2000)
+    clf = MLPClassifier(solver='lbfgs', alpha=1e-4, hidden_layer_sizes=(5, 5), random_state=1, max_iter=5000)
     # clf.fit(X_train, y_train)
 
+    # lets write some explanation here
     correct_ones = 0
     train_size = int(len(y) * test_size)
     test_size = len(y) - train_size
+    print(f'train size is {train_size}')
+    print(f'test size is {test_size}')
     for i in range(test_size):
         X_train = X[i: i + train_size, :]
         y_train = y[i: i + train_size]
