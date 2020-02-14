@@ -42,7 +42,9 @@ if __name__ == "__main__":
     # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
     # before the decision is made
     # generate the save path
+    stock_name = 'BIB'
+    print(f"stock file name is {stock_name}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv")
     save_path = os.path.join(general_path(),
-                             f'stock_end_at_{input_date}_for_{number_of_weeks}_weeks.csv')
+                             f'{stock_name}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv')
 
-    pull_stock(stock_name='BIB', save_path=save_path, start=start_date, end=end_date)
+    pull_stock(stock_name=stock_name, save_path=save_path, start=start_date, end=end_date)

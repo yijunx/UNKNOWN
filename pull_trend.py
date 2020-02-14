@@ -11,14 +11,14 @@ from supports import general_path
 def pull_keywords_trend(keywords_list,
                         time_frame,
                         geo='US',
-                        save_path=None,
+                        save_folder=None,
                         relative_to_each_other=True):
     """
 
     :param keywords_list: up to 5
     :param time_frame: Specific dates, 'YYYY-MM-DD YYYY-MM-DD' example '2016-12-14 2017-01-25'
     :param geo:
-    :param save_path: the path to save, optional
+    :param save_folder: the path to save, optional
     :param relative_to_each_other:
 
     # notes on the keywords:
@@ -74,8 +74,20 @@ def pull_keywords_trend(keywords_list,
             else:
                 interest_over_time_df[keyword] = pytrends.interest_over_time()[keyword]
 
-    if save_path:
-        interest_over_time_df.to_csv(save_path)
+    # now lets check if it is by week or by day
+    a_delta = interest_over_time_df.index[1] - interest_over_time_df.index[1]
+    if a_delta.days > 1:
+        by_day = False
+        print('This trend is by week')
+    else:
+        by_day = True
+        print('This trend is by day')
+
+    # now lets get the file name for the pulled trend
+    file_name = f'{"_".join(keywords_list)}_{"by_day" if by_day else "by_week"}.csv'
+    print(f'trend file name is {file_name}')
+    if save_folder:
+        interest_over_time_df.to_csv(os.path.join(save_folder, file_name))
     print(f'Total lines: {len(interest_over_time_df)}')
     print(interest_over_time_df)
     return interest_over_time_df
@@ -113,17 +125,16 @@ if __name__ == "__main__":
     # generate the save path
 
     # pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv
-    keywords_list = ['biotech', 'coronavirus', 'crisis']
-    save_path = os.path.join(general_path(),
-                             f'{"_".join(keywords_list)}.csv')
+    keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    save_path = general_path()
 
     # composition names
     # ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN']
     # more composition names
-    # ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    #
     pull_keywords_trend(keywords_list=keywords_list,
                         time_frame=time_frame,
-                        save_path=save_path,
+                        save_folder=save_path,
                         relative_to_each_other=False)
 
 

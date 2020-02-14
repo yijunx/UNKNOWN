@@ -69,7 +69,7 @@ def pull_all_inputs_date(last_day,
         timeframe = f'{trend_start_date} {trend_end_date}'
         pull_keywords_trend(keywords_list=keywords,
                             time_frame=timeframe,
-                            save_path=save_path_trend,
+                            save_folder=save_path_trend,
                             relative_to_each_other=False)
         # pull stock
         pull_stock(stock_name=stock_name, start=stock_start_date, end=stock_end_date, save_path=save_path_stock)
