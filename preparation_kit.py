@@ -74,7 +74,7 @@ def give_week_number_to_dataframe(df):
     return df
 
 
-def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4):
+def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4, predict_what=None):
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-02-10_end_at_2020-2-7_for_100_weeks.csv'
 
@@ -135,7 +135,7 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
 
 
             # let's use close minus open first
-            a_target = row.close_open
+            a_target = row[predict_what]
 
             inputs.append(an_input)
             targets.append(a_target)
@@ -144,7 +144,7 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
     return np.stack(tuple(inputs)), targets, week_info
 
 
-def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4):
+def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4, predict_what=None):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -184,7 +184,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     trend_stock_df['week_number'] = trend_stock_df['week_diff'].cumsum()
     trend_stock_df['week_number'] = trend_stock_df['week_number'].apply(int)
 
-    print(trend_stock_df.head())
+    # print(trend_stock_df.head())
     # so now we can have week summary
     # need to get the week number, the weeks open date, the weeks open, close, high, low, and number of weeks, included
     # then we go and find out the corresponding inputs
@@ -245,16 +245,16 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
         an_input = np.array(an_input).flatten()
 
         # let's use close minus open first
-        a_target = row.close_open
+        a_target = row[predict_what]
 
         inputs.append(an_input)
         targets.append(a_target)
-        week_numbers.append(index)
+        week_numbers.append(row.Open_date)
 
     # let's make some documentation before dive into the machine learing part
     # Ys can be
-    print(week_summary.tail())
-    print(week_summary.head())
+    # print(week_summary.tail())
+    # print(week_summary.head())
 
     # so i need to make x numpy arrays first
     # then collapse x into a single array
@@ -263,5 +263,9 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     print(f'total number of weeks is {len(week_summary)}')
 
     return np.stack(tuple(inputs)), targets, week_numbers
+
+
+def create_trend_files(keywords_list):
+    return 0
 
 

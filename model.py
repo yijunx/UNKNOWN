@@ -10,20 +10,19 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
-PARA1 = pd.Series(index=['max_depth', 'n_estimators', 'max_features'], data=[5,10,1])
 
 class Model:
     """
     This model keeps track of the trend data and stock data, it can read files, generate tests and record
     and predict
     """
-    def __init__(self, keywords_file_name, stock_file_name, model_name, parameters):
+    def __init__(self, keywords_file_name, stock_file_name, model_parameters, predict_what):
         """
 
         :param keywords_file_name:
         :param stock_file_name:
         :param model_name:
-        :param parameters:
+        :param model_parameters:
         """
 
         self.keywords_file_name = keywords_file_name
@@ -38,7 +37,8 @@ class Model:
         self.weeks_to_predict = 0
         self.keywords = self.keywords_file_name.split('_by')[0].split('_')
         self.stock_name = self.stock_file_name.split('_end_at_')[0]
-        self.model, self.model_desc = models_selection(model_name, parameters)
+        self.model, self.model_desc = models_selection(model_parameters)
+        self.predict_what = predict_what
         # check if this is by week or by day
         # thus i need to change the pulling section
 
@@ -54,17 +54,22 @@ class Model:
         if self.trend_by_day:
             self.X, self.y, self.time_stamps = form_X_y_from_daily_data(self.keywords_file_name,
                                                                         self.stock_file_name,
-                                                                        weeks_to_predict=weeks_to_predict)
+                                                                        weeks_to_predict=weeks_to_predict,
+                                                                        predict_what=self.predict_what)
+            self.start_date = self.time_stamps[0]
+            self.end_date = self.time_stamps[-1]
         else:
             self.X, self.y, self.time_stamps = form_X_y_from_weekly_data(self.keywords_file_name,
                                                                          self.stock_file_name,
-                                                                         weeks_to_predict=weeks_to_predict)
-        self.start_date = self.time_stamps[0].Open_date
-        self.end_date = self.time_stamps[-1].Close_date
+                                                                         weeks_to_predict=weeks_to_predict,
+                                                                         predict_what=self.predict_what)
+            self.start_date = self.time_stamps[0].Open_date
+            self.end_date = self.time_stamps[-1].Close_date
+
         self.weeks_to_predict = weeks_to_predict
 
-    def reselect_model(self, model_name, parameters):
-        self.model, self.model_desc = models_selection(model_name, parameters)
+    def reselect_model(self, parameters):
+        self.model, self.model_desc = models_selection(parameters)
 
     def fit_and_predict_normal(self, test_size):
         X_train, X_test, y_train, y_test = split_train_and_test(self.X, self.y, test_size)
@@ -79,7 +84,12 @@ class Model:
         result_df = pd.DataFrame(index=range(len(y_test)))
         result_df['y_test'] = y_test
         result_df['y_predict'] = y_predict
+        result_df['correct'] = [True if y_t == y_p else False
+                                for y_t, y_p in zip(result_df.y_test, result_df.y_predict)]
         print(result_df)
+
+        # print(f'\nscore is {self.score}')
+        print(f'correct portion is {len(result_df[result_df.correct]) / len(X_test)}')
 
         # at the end we must log it, log the result here
         self.log(cascade=False)
@@ -89,9 +99,9 @@ class Model:
         # at the end we must log it
         # lets write some explanation here
         correct_ones = 0
-        train_amount = int(len(self.y) * test_size)
+        test_amount = int(len(self.y) * test_size)
+        train_amount = len(self.y) - test_amount
         self.training_size = train_amount
-        test_amount = len(self.y) - train_amount
         print(f'train size is {train_amount}')
         print(f'test size is {test_amount}')
         result_df = pd.DataFrame(index=range(test_amount), columns=['y_test', 'y_predict'])
@@ -101,7 +111,7 @@ class Model:
             X_test = self.X[[i + train_amount], :]
             y_test = self.y[i + train_amount]
             self.model.fit(X_train, y_train)
-            prediction = self.model.predict(X_test)
+            prediction = self.model.predict(X_test)[0]
 
             # log into result
             result_df.loc[i, 'y_test'] = y_test
@@ -112,9 +122,13 @@ class Model:
 
         # print some result, or picture
         # need to calculate the score here
+        result_df['correct'] = [True if y_t == y_p else False
+                                for y_t, y_p in zip(result_df.y_test, result_df.y_predict)]
         print(result_df)
 
         self.score = correct_ones / test_amount
+        print(f'correct portion is {len(result_df[result_df.correct]) / test_amount}')
+
         # at the end we must log it
         self.log(cascade=True)
 
@@ -123,7 +137,6 @@ class Model:
         # fetch the file
         all_tests = pd.read_csv(os.path.join(general_path(), 'all_tests.csv'), index_col=0)
         # write data into the file
-        print(all_tests)
         row_index = len(all_tests)
         all_tests.loc[row_index, 'KEYWORDS'] = '_'.join(self.keywords)
         all_tests.loc[row_index, 'STOCK_NAME'] = self.stock_name
@@ -131,12 +144,11 @@ class Model:
         all_tests.loc[row_index, 'TRAIN_SIZE'] = self.training_size
         all_tests.loc[row_index, 'WEEKS_IN_TRAINS_SIZE'] = self.weeks_to_predict
         all_tests.loc[row_index, 'SCORE'] = self.score
-        print(self.start_date)
         all_tests.loc[row_index, 'TREND_START_DATE'] = self.start_date
         all_tests.loc[row_index, 'TREND_END_DATE'] = self.end_date
         all_tests.loc[row_index, 'BY_DATE_OR_WEEK'] = 'DAY' if self.trend_by_day else 'WEEK'
         all_tests.loc[row_index, 'CASCADE'] = cascade
-        # all_tests.loc[row_index, 'KEYWORDS'] = '_'.join(self.keywords)
+        all_tests.loc[row_index, 'STUDY_ON_WHAT'] = self.predict_what
 
         # output the results
         all_tests.to_csv(os.path.join(general_path(), 'all_tests.csv'))
@@ -169,9 +181,25 @@ class Model:
 
         return 0
 
+# file names we have
+# 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv'
+# 'biotech_bioinformatics_biotechnology jobs_bioengineering_by_day.csv'
+# 'biotech_bioinformatics_biotechnology jobs_bioengineering_AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_day.csv'
+# 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv'
+# 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv'
+# here comes the test...
+
+para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+                               data=['RandomForestClassifier', 5, 10, 1])
+
+para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+                     data=['MLPClassifier', (10, 10), 2000])
 
 
-PARA1 = pd.Series(index=['max_depth', 'n_estimators', 'max_features'], data=[5,10,1])
-m = Model('AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv', 'BIB_end_at_2020-2-14_for_100_weeks.csv', 'RandomForestClassifier', PARA1)
-m.form_X_y(weeks_to_predict=10)
-m.fit_and_predict_normal(0.3)
+m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv',
+          'BIB_end_at_2020-2-14_for_100_weeks.csv',
+          para_MLP,
+          'close_open')
+
+m.form_X_y(weeks_to_predict=6)
+m.fit_and_predict_cascade(test_size=0.5)

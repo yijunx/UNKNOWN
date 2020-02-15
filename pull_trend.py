@@ -125,7 +125,11 @@ if __name__ == "__main__":
     # generate the save path
 
     # pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv
-    keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    # keywords_list = ['biotech', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
+    keywords_list = ['biotechnology', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'virus', 'health care']
     save_path = general_path()
 
     # composition names

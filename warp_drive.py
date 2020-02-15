@@ -15,12 +15,13 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 
 
-def models_selection(model_name, parameters):
+def models_selection(parameters):
     """
-    :param model_name:
+
     :param parameters: pandas series...
     :return:
     """
+    model_name = parameters['model_name']
 
     if model_name == 'SVC':
         # now we know it is a SVC, we need kernel, and C
@@ -29,7 +30,7 @@ def models_selection(model_name, parameters):
 
         model = SVC(kernel=kernel, C=C)
         # now lets write the model_description
-        model_desc = f'SVC_kernel_{parameters[0]}_C_{parameters[1]}'
+        model_desc = f'SVC_kernel_{kernel}_C_{C}'
 
     elif model_name == 'RandomForestClassifier':
 
@@ -48,8 +49,11 @@ def models_selection(model_name, parameters):
         hidden_layer_sizes = parameters['hidden_layer_sizes']
         max_iter = parameters['max_iter']
 
-        model = MLPClassifier(solver='lbfgs', alpha=1e-4,
-                              hidden_layer_sizes=hidden_layer_sizes, random_state=1, max_iter=max_iter),
+        model = MLPClassifier(solver='lbfgs',
+                              alpha=1e-4,
+                              hidden_layer_sizes=hidden_layer_sizes,
+                              random_state=1,
+                              max_iter=max_iter)
         model_desc = f'MLPClassifier_hidden_layer_sizes_{hidden_layer_sizes}_max_iter_{max_iter}'
 
     else:
