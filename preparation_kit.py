@@ -266,6 +266,8 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
 
 
 def create_trend_files(keywords_list):
+    # this function will go though the pulled list of things
+    # and form a new dataframe...
     return 0
 
 
