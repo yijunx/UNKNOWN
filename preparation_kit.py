@@ -3,6 +3,7 @@ from supports import general_path
 import os
 import numpy as np
 from datetime import timedelta
+from sklearn import preprocessing
 
 
 def read_trend(trend_file_name):
@@ -74,7 +75,9 @@ def give_week_number_to_dataframe(df):
     return df
 
 
-def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4, predict_what=None):
+def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
+                              predict_what=None,
+                              scaled=False):
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-02-10_end_at_2020-2-7_for_100_weeks.csv'
 
@@ -140,11 +143,17 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
             inputs.append(an_input)
             targets.append(a_target)
             week_info.append(row)
+    if scaled:
+        min_max_scaler = preprocessing.MinMaxScaler()
+        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_info
+    else:
+        return np.stack(tuple(inputs)), targets, week_info
 
-    return np.stack(tuple(inputs)), targets, week_info
 
 
-def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4, predict_what=None):
+def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
+                             predict_what=None,
+                             scaled=False):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -261,8 +270,11 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     # and put x together
     # and pass to tts, the clf
     print(f'total number of weeks is {len(week_summary)}')
-
-    return np.stack(tuple(inputs)), targets, week_numbers
+    if scaled:
+        min_max_scaler = preprocessing.MinMaxScaler()
+        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_numbers
+    else:
+        return np.stack(tuple(inputs)), targets, week_numbers
 
 
 def create_trend_files(keywords_list):

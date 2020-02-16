@@ -39,6 +39,7 @@ class Model:
         self.stock_name = self.stock_file_name.split('_end_at_')[0]
         self.model, self.model_desc = models_selection(model_parameters)
         self.predict_what = predict_what
+        self.scaled = False
         # check if this is by week or by day
         # thus i need to change the pulling section
 
@@ -50,23 +51,26 @@ class Model:
     def __repr__(self):
         return f'{self.model_desc}'
 
-    def form_X_y(self, weeks_to_predict):
+    def form_X_y(self, weeks_to_predict, scaled=False):
         if self.trend_by_day:
             self.X, self.y, self.time_stamps = form_X_y_from_daily_data(self.keywords_file_name,
                                                                         self.stock_file_name,
                                                                         weeks_to_predict=weeks_to_predict,
-                                                                        predict_what=self.predict_what)
+                                                                        predict_what=self.predict_what,
+                                                                        scaled=scaled)
             self.start_date = self.time_stamps[0]
             self.end_date = self.time_stamps[-1]
         else:
             self.X, self.y, self.time_stamps = form_X_y_from_weekly_data(self.keywords_file_name,
                                                                          self.stock_file_name,
                                                                          weeks_to_predict=weeks_to_predict,
-                                                                         predict_what=self.predict_what)
+                                                                         predict_what=self.predict_what,
+                                                                         scaled=scaled)
             self.start_date = self.time_stamps[0].Open_date
             self.end_date = self.time_stamps[-1].Close_date
 
         self.weeks_to_predict = weeks_to_predict
+        self.scaled = scaled
 
     def reselect_model(self, parameters):
         self.model, self.model_desc = models_selection(parameters)
@@ -149,6 +153,7 @@ class Model:
         all_tests.loc[row_index, 'BY_DATE_OR_WEEK'] = 'DAY' if self.trend_by_day else 'WEEK'
         all_tests.loc[row_index, 'CASCADE'] = cascade
         all_tests.loc[row_index, 'STUDY_ON_WHAT'] = self.predict_what
+        all_tests.loc[row_index, 'SCALED'] = self.scaled
 
         # output the results
         all_tests.to_csv(os.path.join(general_path(), 'all_tests.csv'))
@@ -181,25 +186,26 @@ class Model:
 
         return 0
 
-# file names we have
-# 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv'
-# 'biotech_bioinformatics_biotechnology jobs_bioengineering_by_day.csv'
-# 'biotech_bioinformatics_biotechnology jobs_bioengineering_AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_day.csv'
-# 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv'
-# 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv'
-# here comes the test...
 
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
+if __name__ == "__main__":
+    # file names we have
+    # 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv'
+    # 'biotech_bioinformatics_biotechnology jobs_bioengineering_by_day.csv'
+    # 'biotech_bioinformatics_biotechnology jobs_bioengineering_AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_day.csv'
+    # 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv'
+    # 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv'
+    # here comes the test...
+    para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+                                   data=['RandomForestClassifier', 5, 10, 1])
 
-para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (10, 10), 2000])
+    para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+                         data=['MLPClassifier', (10, 10), 2000])
 
 
-m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv',
-          'BIB_end_at_2020-2-14_for_100_weeks.csv',
-          para_MLP,
-          'close_open')
+    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv',
+              'BIB_end_at_2020-2-14_for_100_weeks.csv',
+              para_MLP,
+              'close_open')
 
-m.form_X_y(weeks_to_predict=6)
-m.fit_and_predict_cascade(test_size=0.5)
+    m.form_X_y(weeks_to_predict=5, scaled=True)
+    m.fit_and_predict_cascade(test_size=0.5)
