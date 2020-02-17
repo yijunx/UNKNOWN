@@ -241,24 +241,28 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     # now based on the weeks to predict to get all the Xs and Ys
     starting_week_number = week_summary.index[weeks_to_predict - 1]
     week_summary = week_summary[starting_week_number:]
+    # print(week_summary)
 
     inputs = []
     targets = []
     week_numbers = []
+    # print(trend_stock_df.head(10))
 
     for index, row in week_summary.iterrows():
 
         # now lets prepare
         an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predict, index))][trend_columns]
-        # make an_input to a list of numbers
-        an_input = np.array(an_input).flatten()
+        if len(an_input) == 7 * weeks_to_predict:
+            # make an_input to a list of numbers
+            an_input = np.array(an_input).flatten()
+            # print(an_input.size)
+            # let's use close minus open first
+            a_target = row[predict_what]
 
-        # let's use close minus open first
-        a_target = row[predict_what]
+            inputs.append(an_input)
+            targets.append(a_target)
+            week_numbers.append(row.Open_date)
 
-        inputs.append(an_input)
-        targets.append(a_target)
-        week_numbers.append(row.Open_date)
 
     # let's make some documentation before dive into the machine learing part
     # Ys can be

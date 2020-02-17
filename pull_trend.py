@@ -129,7 +129,7 @@ if __name__ == "__main__":
     # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
     # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
     # keywords_list = ['biotech', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
-    keywords_list = ['biotechnology', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'virus', 'health care']
+    keywords_list = ['biotechnology', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'investment fund', 'society', 'economy', 'biotechnology innovation organization']
     save_path = general_path()
 
     # composition names

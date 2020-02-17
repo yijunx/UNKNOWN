@@ -199,13 +199,12 @@ if __name__ == "__main__":
                                    data=['RandomForestClassifier', 5, 10, 1])
 
     para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                         data=['MLPClassifier', (10, 10), 2000])
+                         data=['MLPClassifier', (5, 5), 2000])
 
-
-    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv',
-              'BIB_end_at_2020-2-14_for_100_weeks.csv',
+    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_day.csv',
+              'BIB_end_at_2020-02-17_for_100_weeks.csv',
               para_MLP,
               'close_open')
 
-    m.form_X_y(weeks_to_predict=5, scaled=True)
-    m.fit_and_predict_cascade(test_size=0.5)
+    m.form_X_y(weeks_to_predict=2, scaled=True)
+    m.fit_and_predict_cascade(test_size=0.8)
