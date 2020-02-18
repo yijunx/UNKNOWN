@@ -29,7 +29,7 @@ if __name__ == '__main__':
     kw_summary = all_tests.groupby('KEYWORDS')['SCORE'].mean()
     print(kw_summary)
 
-    weeks_in_train_size_summary = all_tests.groupby('WEEKS_IN_TRAINS_SIZE')['SCORE'].mean()
+    weeks_in_train_size_summary = all_tests.groupby(['BY_DATE_OR_WEEK', 'WEEKS_IN_TRAINS_SIZE'])['SCORE'].mean()
     print(weeks_in_train_size_summary)
 
     print(all_tests[(all_tests.CASCADE) & (all_tests.BY_DATE_OR_WEEK == 'DAY')].sort_values(by='SCORE'))

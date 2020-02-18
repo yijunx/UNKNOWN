@@ -75,7 +75,7 @@ class Model:
     def reselect_model(self, parameters):
         self.model, self.model_desc = models_selection(parameters)
 
-    def fit_and_predict_normal(self, test_size):
+    def fit_and_predict_normal(self, test_size, log=True):  # instead of giving test_size, we should give training amount!!!
         X_train, X_test, y_train, y_test = split_train_and_test(self.X, self.y, test_size)
         self.model.fit(X_train, y_train)
         self.training_size = len(X_train)
@@ -96,9 +96,10 @@ class Model:
         print(f'correct portion is {len(result_df[result_df.correct]) / len(X_test)}')
 
         # at the end we must log it, log the result here
-        self.log(cascade=False)
+        if log:
+            self.log(cascade=False)
 
-    def fit_and_predict_cascade(self, test_size):
+    def fit_and_predict_cascade(self, test_size, log=True):
 
         # at the end we must log it
         # lets write some explanation here
@@ -134,7 +135,8 @@ class Model:
         print(f'correct portion is {len(result_df[result_df.correct]) / test_amount}')
 
         # at the end we must log it
-        self.log(cascade=True)
+        if log:
+            self.log(cascade=True)
 
     def log(self, cascade):
         print('log starts!')
@@ -199,12 +201,12 @@ if __name__ == "__main__":
                                    data=['RandomForestClassifier', 5, 10, 1])
 
     para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                         data=['MLPClassifier', (5, 5), 2000])
+                         data=['MLPClassifier', (20, 3), 2000])
 
-    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_day.csv',
+    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv',
               'BIB_end_at_2020-02-17_for_100_weeks.csv',
               para_MLP,
               'close_open')
 
-    m.form_X_y(weeks_to_predict=2, scaled=True)
-    m.fit_and_predict_cascade(test_size=0.8)
+    m.form_X_y(weeks_to_predict=3, scaled=True)
+    m.fit_and_predict_cascade(test_size=0.5, log=False)
