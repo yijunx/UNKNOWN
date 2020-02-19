@@ -40,29 +40,31 @@ test_data = keras.preprocessing.sequence.pad_sequences(test_data,
 def decode_review(review):
     return " ".join([num_to_word_dic.get(i, "?") for i in review])
 
-# print(decode_review(test_data[0]))
-# # time to create the model
-# amodel = keras.Sequential()
+print(decode_review(test_data[0]))
+# time to create the model
+amodel = keras.Sequential()
+
+# add layers one by one here
+amodel.add(keras.layers.Embedding(10000, 16))
+# what is the embedding layer?
 #
-# # add layers one by one here
-# amodel.add(keras.layers.Embedding(10000, 16))
-# # what is the embedding layer?
-# #
-#
-# amodel.add(keras.layers.GlobalAveragePooling1D())
-# amodel.add(keras.layers.Dense(16, activation='relu'))    # linear rectify
-# amodel.add(keras.layers.Dense(1, activation='sigmoid'))  # good or bad, so sigmoid, for the 1,0 label
-#
-# amodel.summary()
-#
-# amodel.compile(optimizer="adam", loss='binary_crossentropy', metrics=['accuracy'])
-#
-# # a further split
-# x_val = train_data[:10000]  # val => validation
-# x_train = train_data[10000:]
-#
-# y_val = train_labels[:10000]  # val => validation
-# y_train = train_labels[10000:]
+
+amodel.add(keras.layers.GlobalAveragePooling1D())
+amodel.add(keras.layers.Dense(16, activation='relu'))    # linear rectify
+amodel.add(keras.layers.Dense(1, activation='sigmoid'))  # good or bad, so sigmoid, for the 1,0 label
+
+amodel.summary()
+
+amodel.compile(optimizer="adam", loss='binary_crossentropy', metrics=['accuracy'])
+
+# a further split
+x_val = train_data[:10000]  # val => validation
+x_train = train_data[10000:]
+
+y_val = train_labels[:10000]  # val => validation
+y_train = train_labels[10000:]
+
+print(type(x_train))
 #
 # # now lets fit the model
 #
@@ -121,7 +123,7 @@ with open("test.txt", encoding="utf-8") as f:
         print(predict)
 
 print('i dont understand why, now i understand why')
-print(test_data[0])
+print(np.array(test_data[0]))
 predict = amodel.predict(np.array([test_data[0]]))
 print(predict[0])
 print(predict)

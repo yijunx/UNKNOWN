@@ -6,6 +6,7 @@ from warp_drive import models_selection
 from warp_drive import split_train_and_test
 from supports import general_path
 import pandas as pd
+import numpy as np
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -51,13 +52,14 @@ class Model:
     def __repr__(self):
         return f'{self.model_desc}'
 
-    def form_X_y(self, weeks_to_predict, scaled=False):
+    def form_X_y(self, weeks_to_predict, scaled=False, div_100=True):
         if self.trend_by_day:
             self.X, self.y, self.time_stamps = form_X_y_from_daily_data(self.keywords_file_name,
                                                                         self.stock_file_name,
                                                                         weeks_to_predict=weeks_to_predict,
                                                                         predict_what=self.predict_what,
-                                                                        scaled=scaled)
+                                                                        scaled=scaled,
+                                                                        div_100=div_100)
             self.start_date = self.time_stamps[0]
             self.end_date = self.time_stamps[-1]
         else:
@@ -65,7 +67,8 @@ class Model:
                                                                          self.stock_file_name,
                                                                          weeks_to_predict=weeks_to_predict,
                                                                          predict_what=self.predict_what,
-                                                                         scaled=scaled)
+                                                                         scaled=scaled,
+                                                                         div_100=div_100)
             self.start_date = self.time_stamps[0].Open_date
             self.end_date = self.time_stamps[-1].Close_date
 
@@ -77,7 +80,7 @@ class Model:
 
     def fit_and_predict_normal(self, test_size, log=True):  # instead of giving test_size, we should give training amount!!!
         X_train, X_test, y_train, y_test = split_train_and_test(self.X, self.y, test_size)
-        self.model.fit(X_train, y_train)
+        self.model.fit(X_train, np.array(y_train))
         self.training_size = len(X_train)
         self.score = self.model.score(X_test, y_test)
 
@@ -115,8 +118,14 @@ class Model:
             y_train = self.y[i: i + train_amount]
             X_test = self.X[[i + train_amount], :]
             y_test = self.y[i + train_amount]
-            self.model.fit(X_train, y_train)
-            prediction = self.model.predict(X_test)[0]
+
+            # print(X_train.shape, np.array(y_train).shape)
+            # print(type(X_train))
+
+            # fitModel =
+            self.model.fit(X_train, np.array(y_train))
+
+            prediction = self.model.predict(X_test)[0][0]
 
             # log into result
             result_df.loc[i, 'y_test'] = y_test
@@ -127,7 +136,7 @@ class Model:
 
         # print some result, or picture
         # need to calculate the score here
-        result_df['correct'] = [True if y_t == y_p else False
+        result_df['correct'] = [True if abs(y_t - y_p) <= 0.5 else False
                                 for y_t, y_p in zip(result_df.y_test, result_df.y_predict)]
         print(result_df)
 
@@ -197,16 +206,21 @@ if __name__ == "__main__":
     # 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_week.csv'
     # 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv'
     # here comes the test...
+
+
     para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
                                    data=['RandomForestClassifier', 5, 10, 1])
 
     para_MLP = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
                          data=['MLPClassifier', (20, 3), 2000])
 
-    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv',
+    tf_gen_0 = pd.Series(index=['model_name'],
+                         data=['tf_gen_0'])
+
+    m = Model('AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv',
               'BIB_end_at_2020-02-17_for_100_weeks.csv',
-              para_MLP,
+              tf_gen_0,
               'close_open')
 
-    m.form_X_y(weeks_to_predict=3, scaled=True)
+    m.form_X_y(weeks_to_predict=9, scaled=False, div_100=False)
     m.fit_and_predict_cascade(test_size=0.5, log=False)

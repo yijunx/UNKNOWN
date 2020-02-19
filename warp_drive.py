@@ -13,6 +13,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier, AdaBoostClassifier
 from sklearn.naive_bayes import GaussianNB
 from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
+from tensorflow import keras
 
 
 def models_selection(parameters):
@@ -55,6 +56,27 @@ def models_selection(parameters):
                               random_state=1,
                               max_iter=max_iter)
         model_desc = f'MLPClassifier_hidden_layer_sizes_{hidden_layer_sizes}_max_iter_{max_iter}'
+
+    elif model_name == 'tf_gen_0':
+
+        model = keras.Sequential()
+
+        # add layers one by one here
+        model.add(keras.layers.Embedding(10000, 5))
+        # what is the embedding layer.. it transforms the input data array into high dimensional vectors...
+        model.add(keras.layers.GlobalAveragePooling1D())
+
+        # model.add(keras.layers.Dense(5, activation='relu'))    # linear rectify
+        # model.add(keras.layers.Dense(10, activation='sigmoid'))    # linear rectify
+        model.add(keras.layers.Dense(5, activation='sigmoid'))
+        model.add(keras.layers.Dense(1, activation='sigmoid'))  # good or bad, so sigmoid, for the 1,0 label
+
+        # check the model summary like this
+        # model.summary()
+
+        model.compile(optimizer="adam", loss='binary_crossentropy', metrics=['accuracy'])
+
+        model_desc = model_name
 
     else:
         return

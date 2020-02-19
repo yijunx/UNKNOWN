@@ -6,15 +6,16 @@ from datetime import timedelta
 from sklearn import preprocessing
 
 
-def read_trend(trend_file_name):
+def read_trend(trend_file_name, div_100=True):
     # pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv
     df = pd.read_csv(os.path.join(general_path(), trend_file_name), index_col=0)
     df.index = pd.to_datetime(df.index)
 
     # now i need to scale the trend
-    for col in df.columns:
-        if col != 'isPartial':
-            df[col] = df[col] / 100
+    if div_100:
+        for col in df.columns:
+            if col != 'isPartial':
+                df[col] = df[col] / 100
     return df
 
 
@@ -77,7 +78,8 @@ def give_week_number_to_dataframe(df):
 
 def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
                               predict_what=None,
-                              scaled=False):
+                              scaled=False,
+                              div_100=True):
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-02-10_end_at_2020-2-7_for_100_weeks.csv'
 
@@ -85,7 +87,7 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
         stock_file_name = 'stock_end_at_2020-2-7_for_100_weeks.csv'
 
     # read trend
-    trend = read_trend(trend_file_name)
+    trend = read_trend(trend_file_name, div_100=div_100)
 
     # read stock
     stock = read_stock(stock_file_name)
@@ -153,7 +155,8 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
 
 def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
                              predict_what=None,
-                             scaled=False):
+                             scaled=False,
+                             div_100=True):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -162,7 +165,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
         stock_file_name = 'stock_end_at_2020-1-30_for_52_weeks.csv'
 
     # read trend
-    trend = read_trend(trend_file_name)
+    trend = read_trend(trend_file_name, div_100=div_100)
 
     # read stock
     stock = read_stock(stock_file_name)
