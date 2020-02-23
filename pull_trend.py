@@ -9,6 +9,7 @@ from supports import general_path
 
 
 def pull_keywords_trend(keywords_list,
+                        keyword_short_name,
                         time_frame,
                         geo='US',
                         save_folder=None,
@@ -84,7 +85,7 @@ def pull_keywords_trend(keywords_list,
         print('This trend is by day')
 
     # now lets get the file name for the pulled trend
-    file_name = f'{"_".join(keywords_list)}_{"by_day" if by_day else "by_week"}.csv'
+    file_name = f'{keyword_short_name}_{relative_to_each_other}_{"by_day" if by_day else "by_week"}.csv'
     print(f'trend file name is {file_name}')
     if save_folder:
         interest_over_time_df.to_csv(os.path.join(save_folder, file_name))
@@ -138,6 +139,7 @@ if __name__ == "__main__":
     # more composition names
     #
     pull_keywords_trend(keywords_list=keywords_list,
+                        keyword_short_name='',
                         time_frame=time_frame,
                         save_folder=save_path,
                         relative_to_each_other=False)

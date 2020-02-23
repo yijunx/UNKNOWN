@@ -17,7 +17,8 @@ class Model:
     This model keeps track of the trend data and stock data, it can read files, generate tests and record
     and predict
     """
-    def __init__(self, keywords_file_name, stock_file_name, model_parameters, predict_what):
+    def __init__(self,
+                 keywords_file_name, stock_file_name, model_parameters, predict_what, log_file_name):
         """
 
         :param keywords_file_name:
@@ -26,6 +27,7 @@ class Model:
         :param model_parameters:
         """
 
+        self.model_para = model_parameters
         self.keywords_file_name = keywords_file_name
         self.stock_file_name = stock_file_name
         self.start_date = 0
@@ -38,9 +40,10 @@ class Model:
         self.weeks_to_predict = 0
         self.keywords = self.keywords_file_name.split('_by')[0].split('_')
         self.stock_name = self.stock_file_name.split('_end_at_')[0]
-        self.model, self.model_desc = models_selection(model_parameters)
+        self.model, self.model_desc = models_selection(self.model_para)
         self.predict_what = predict_what
         self.scaled = False
+        self.log_file_name = log_file_name
         # check if this is by week or by day
         # thus i need to change the pulling section
 
@@ -80,9 +83,18 @@ class Model:
 
     def fit_and_predict_normal(self, test_size, log=True):  # instead of giving test_size, we should give training amount!!!
         X_train, X_test, y_train, y_test = split_train_and_test(self.X, self.y, test_size)
-        self.model.fit(X_train, np.array(y_train))
+        # fitModel =
+        if 'tf' in self.model_desc:
+            self.model.fit(X_train, np.array(y_train), epochs=400)
+        else:
+            self.model.fit(X_train, np.array(y_train))
         self.training_size = len(X_train)
-        self.score = self.model.score(X_test, y_test)
+
+        if 'tf' in self.model_desc:
+            test_loss, self.score = self.model.evaluate(X_test, np.array(y_test))
+        else:
+            self.score = self.model.score(X_test, y_test)
+
 
         # print some result, or picture
         y_predict = self.model.predict(X_test)
@@ -91,7 +103,7 @@ class Model:
         result_df = pd.DataFrame(index=range(len(y_test)))
         result_df['y_test'] = y_test
         result_df['y_predict'] = y_predict
-        result_df['correct'] = [True if y_t == y_p else False
+        result_df['correct'] = [True if abs(y_t - y_p) <= 0.5 else False
                                 for y_t, y_p in zip(result_df.y_test, result_df.y_predict)]
         print(result_df)
 
@@ -114,6 +126,8 @@ class Model:
         print(f'test size is {test_amount}')
         result_df = pd.DataFrame(index=range(test_amount), columns=['y_test', 'y_predict'])
         for i in range(test_amount):
+            print(f'Round {i + 1} / {test_amount} starts, {correct_ones} / {i} is correct')
+            print(f'Round {i + 1} / {test_amount} starts, {correct_ones} / {i} is correct')
             X_train = self.X[i: i + train_amount, :]
             y_train = self.y[i: i + train_amount]
             X_test = self.X[[i + train_amount], :]
@@ -123,15 +137,24 @@ class Model:
             # print(type(X_train))
 
             # fitModel =
-            self.model.fit(X_train, np.array(y_train))
+            if 'tf' in self.model_desc:
+                # recreate model
+                self.model, self.model_desc = models_selection(self.model_para)
+                self.model.fit(X_train, np.array(y_train), epochs=800)
+                print(X_train)
 
-            prediction = self.model.predict(X_test)[0][0]
+                prediction = self.model.predict(X_test)[0][0]
+                print(X_test)
+            else:
+                self.model.fit(X_train, np.array(y_train))
+
+                prediction = self.model.predict(X_test)[0]
 
             # log into result
             result_df.loc[i, 'y_test'] = y_test
             result_df.loc[i, 'y_predict'] = prediction
 
-            if prediction == y_test:
+            if abs(prediction - y_test) < 0.5:
                 correct_ones += 1
 
         # print some result, or picture
@@ -150,10 +173,10 @@ class Model:
     def log(self, cascade):
         print('log starts!')
         # fetch the file
-        all_tests = pd.read_csv(os.path.join(general_path(), 'all_tests.csv'), index_col=0)
+        all_tests = pd.read_csv(os.path.join(general_path(), self.log_file_name), index_col=0)
         # write data into the file
         row_index = len(all_tests)
-        all_tests.loc[row_index, 'KEYWORDS'] = '_'.join(self.keywords)
+        all_tests.loc[row_index, 'KEYWORDS'] = self.keywords_file_name[:-4]  # '_'.join(self.keywords)
         all_tests.loc[row_index, 'STOCK_NAME'] = self.stock_name
         all_tests.loc[row_index, 'MODEL_DESC'] = self.model_desc
         all_tests.loc[row_index, 'TRAIN_SIZE'] = self.training_size
@@ -167,7 +190,7 @@ class Model:
         all_tests.loc[row_index, 'SCALED'] = self.scaled
 
         # output the results
-        all_tests.to_csv(os.path.join(general_path(), 'all_tests.csv'))
+        all_tests.to_csv(os.path.join(general_path(), self.log_file_name))
 
     def execute(self):
         return
@@ -217,10 +240,16 @@ if __name__ == "__main__":
     tf_gen_0 = pd.Series(index=['model_name'],
                          data=['tf_gen_0'])
 
-    m = Model('AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week.csv',
+    tf_gen_1 = pd.Series(index=['model_name'],
+                         data=['tf_gen_1'])
+    # pear_apple_beer_cool shit_by_day.csv
+    # biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv
+    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv',
               'BIB_end_at_2020-02-17_for_100_weeks.csv',
-              tf_gen_0,
+              tf_gen_1,
               'close_open')
 
-    m.form_X_y(weeks_to_predict=9, scaled=False, div_100=False)
-    m.fit_and_predict_cascade(test_size=0.5, log=False)
+    m.form_X_y(weeks_to_predict=5, scaled=False, div_100=False)
+    m.fit_and_predict_cascade(test_size=0.5, log=True)
+
+    # print(m.y)

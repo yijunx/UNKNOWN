@@ -10,62 +10,127 @@
 
 from model import Model
 import pandas as pd
+from pull_stock import pull_stock
+from pull_trend import pull_keywords_trend
+from supports import general_path
+from datetime import timedelta
+from datetime import datetime
 
 # shall let the laptop cpu running at all times...
 
 # experiment on the close_high
 
 
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
-para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
-                               data=['RandomForestClassifier', 5, 10, 1])
-
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_random_forest = pd.Series(index=['model_name', 'max_depth', 'n_estimators', 'max_features'],
+#                                data=['RandomForestClassifier', 5, 10, 1])
+#
+# para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+#                      data=['MLPClassifier', (6,), 2000])
+# para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+#                      data=['MLPClassifier', (6,), 2000])
+# para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+#                      data=['MLPClassifier', (6,), 2000])
+# para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+#                      data=['MLPClassifier', (6,), 2000])
 para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-para_MLP1 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
-                     data=['MLPClassifier', (6,), 2000])
-
-clfs = []
-
-kwfiles = ['biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_day.csv',
-           'biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv',
-           'biotechnology_bioinformatics_biotechnology jobs_bioengineering_virus_health care_by_day.csv',
-           'biotech_bioinformatics_biotechnology jobs_bioengineering_AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_day.csv',
-           'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_by_week',
-           'apple, pear, root bear',
-           '',
-           '',
-           '']
+                      data=['MLPClassifier', (6,), 2000])
+para_MLP2 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+                      data=['MLPClassifier', (6, 6), 2000])
+para_MLP3 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
+                      data=['MLPClassifier', (10, 5), 2000])
 
 
-training_weeks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-training_test_portion = [0.5, 0.6, 0.7, 0.8]
+# lets give kw group name
+# so that when it is logged it is easy to understand
+# today need to make this experiment kit work - -!
+
+kw_dict = {'top_holding_names': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY',
+           'related_words': 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization',
+           'compare_group': 'apple_pear_root bear',
+           'holding+related_words': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization',
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           # '': [],
+           }
+
+ke_dict = {'debt': 'debt',}
+tf_gen_0 = pd.Series(index=['model_name'],
+                     data=['tf_gen_0'])
+
+tf_gen_1 = pd.Series(index=['model_name'],
+                     data=['tf_gen_1'])
+
+training_weeks = [1, 3, 5, 7, 9, 11]
+training_test_portions = [0.5, 0.6, 0.7, 0.8]
+paras = [para_MLP1, para_MLP2, para_MLP3, tf_gen_0, tf_gen_1]
 
 
 
-# and let's form models and run a lot of them
-# starting by looping like crazy.. see how many lines of data can be created overnight
+by_day = False
+relative_to_each_other = True
+
+if by_day:
+    number_of_weeks = 35
+else:
+    number_of_weeks = 100
+
+end_date = datetime.now().date()
+start_date = end_date - timedelta(days=number_of_weeks * 7)
+
+# conversion both to string so that we can pass to the pytrend.. (date to string.. string to date)
+start_date = start_date.strftime('%Y-%m-%d')
+end_date = end_date.strftime('%Y-%m-%d')
+
+# form the time_frame
+time_frame = f'{start_date} {end_date}'
+
+for item in kw_dict:
+    print(f'pulling kw: {item}')
+    pull_keywords_trend(kw_dict[item].split('_')[:5], item, time_frame=time_frame,
+                        save_folder=general_path(), relative_to_each_other=relative_to_each_other)
+# pull stock
+
+# do the experiment
+for item in kw_dict:
+    for para in paras:
+        for a_test_size in training_test_portions:
+            for weeks_to_train in training_weeks:
+
+                m = Model(f'{item}_{relative_to_each_other}_{"by_day" if by_day else "by_week"}.csv',
+                          'BIB_end_at_2020-02-17_for_100_weeks.csv',
+                          para,
+                          'close_open',
+                          'huh_new_results.csv')
+
+                m.form_X_y(weeks_to_predict=weeks_to_train, scaled=False, div_100=False)
+                # m.fit_and_predict_cascade(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)
+
+                m.form_X_y(weeks_to_predict=weeks_to_train, scaled=True, div_100=True)
+                # m.fit_and_predict_cascade(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)
+                m.fit_and_predict_normal(test_size=a_test_size, log=True)

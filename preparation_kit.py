@@ -129,7 +129,7 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
 
     for index, row in week_summary.iterrows():
         # date_mask = (trend.index > row.Open_date - timedelta(days=7 * weeks_to_predit)) & (trend)
-        if len(trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :]) >= weeks_to_predict:
+        if len(trend.loc[row.Open_date - timedelta(days=7 * (weeks_to_predict + 1)):row.Open_date - timedelta(days=7), :]) >= weeks_to_predict:
             # lets get the date range...
             # date_mask = (data.index > start) & (data.index < end)
             # dates = data.index[date_mask]
