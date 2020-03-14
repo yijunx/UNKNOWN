@@ -43,7 +43,9 @@ class Model:
         self.model, self.model_desc = models_selection(self.model_para)
         self.predict_what = predict_what
         self.scaled = False
+        self.cascade = False
         self.log_file_name = log_file_name
+        self.week_summary = pd.DataFrame()
         # check if this is by week or by day
         # thus i need to change the pulling section
 
@@ -57,7 +59,7 @@ class Model:
 
     def form_X_y(self, weeks_to_predict, scaled=False, div_100=True):
         if self.trend_by_day:
-            self.X, self.y, self.time_stamps = form_X_y_from_daily_data(self.keywords_file_name,
+            self.X, self.y, self.time_stamps, self.week_summary = form_X_y_from_daily_data(self.keywords_file_name,
                                                                         self.stock_file_name,
                                                                         weeks_to_predict=weeks_to_predict,
                                                                         predict_what=self.predict_what,
@@ -66,7 +68,7 @@ class Model:
             self.start_date = self.time_stamps[0]
             self.end_date = self.time_stamps[-1]
         else:
-            self.X, self.y, self.time_stamps = form_X_y_from_weekly_data(self.keywords_file_name,
+            self.X, self.y, self.time_stamps, self.week_summary = form_X_y_from_weekly_data(self.keywords_file_name,
                                                                          self.stock_file_name,
                                                                          weeks_to_predict=weeks_to_predict,
                                                                          predict_what=self.predict_what,
@@ -81,9 +83,15 @@ class Model:
     def reselect_model(self, parameters):
         self.model, self.model_desc = models_selection(parameters)
 
-    def fit_and_predict_normal(self, test_size, log=True):  # instead of giving test_size, we should give training amount!!!
+    def fit_and_predict_normal(self, training_sampling_size, log=True):  # instead of giving test_size, we should give training amount!!!
+
+        # can this function not using random portion...
+        test_size = 1 - training_sampling_size / len(self.y)
         X_train, X_test, y_train, y_test = split_train_and_test(self.X, self.y, test_size)
         # fitModel =
+
+        self.cascade = False
+
         if 'tf' in self.model_desc:
             self.model.fit(X_train, np.array(y_train), epochs=400)
         else:
@@ -94,7 +102,6 @@ class Model:
             test_loss, self.score = self.model.evaluate(X_test, np.array(y_test))
         else:
             self.score = self.model.score(X_test, y_test)
-
 
         # print some result, or picture
         y_predict = self.model.predict(X_test)
@@ -114,11 +121,13 @@ class Model:
         if log:
             self.log(cascade=False)
 
-    def fit_and_predict_cascade(self, test_size, log=True):
+    def fit_and_predict_cascade(self, training_sampling_size, log=True):
 
+        self.cascade = True
         # at the end we must log it
         # lets write some explanation here
         correct_ones = 0
+        test_size = 1 - training_sampling_size / len(self.y)
         test_amount = int(len(self.y) * test_size)
         train_amount = len(self.y) - test_amount
         self.training_size = train_amount
@@ -161,6 +170,8 @@ class Model:
         # need to calculate the score here
         result_df['correct'] = [True if abs(y_t - y_p) <= 0.5 else False
                                 for y_t, y_p in zip(result_df.y_test, result_df.y_predict)]
+        # need to add date stuff to the result...
+
         print(result_df)
 
         self.score = correct_ones / test_amount
@@ -220,6 +231,20 @@ class Model:
 
         return 0
 
+    def back_test(self):
+        gain = 1
+
+        result = self.week_summary.copy()
+
+        if self.cascade:
+            print()
+        else:
+            # normal, need to fit the whole thing
+            print()
+        # study if just buy and hold, what is the return.. need to return the whole dataframe also
+
+        return gain
+
 
 if __name__ == "__main__":
     # file names we have
@@ -244,12 +269,15 @@ if __name__ == "__main__":
                          data=['tf_gen_1'])
     # pear_apple_beer_cool shit_by_day.csv
     # biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv
-    m = Model('biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv',
-              'BIB_end_at_2020-02-17_for_100_weeks.csv',
-              tf_gen_1,
-              'close_open')
+    # compare_group_False_by_week.csv
+    m = Model('economics_False_by_week.csv',
+              'SPY_end_at_2020-2-23_for_100_weeks.csv',
+              tf_gen_0,
+              'close_open',
+              'somefilenamehere')
 
     m.form_X_y(weeks_to_predict=5, scaled=False, div_100=False)
-    m.fit_and_predict_cascade(test_size=0.5, log=True)
+    m.fit_and_predict_cascade(training_sampling_size=5, log=False)
 
     # print(m.y)
+

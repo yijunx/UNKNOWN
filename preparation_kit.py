@@ -147,9 +147,9 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
             week_info.append(row)
     if scaled:
         min_max_scaler = preprocessing.MinMaxScaler()
-        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_info
+        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_info, week_summary
     else:
-        return np.stack(tuple(inputs)), targets, week_info
+        return np.stack(tuple(inputs)), targets, week_info, week_summary
 
 
 
@@ -279,9 +279,9 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     print(f'total number of weeks is {len(week_summary)}')
     if scaled:
         min_max_scaler = preprocessing.MinMaxScaler()
-        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_numbers
+        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_numbers, week_summary
     else:
-        return np.stack(tuple(inputs)), targets, week_numbers
+        return np.stack(tuple(inputs)), targets, week_numbers, week_summary
 
 
 def create_trend_files(keywords_list):

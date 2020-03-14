@@ -67,8 +67,8 @@ def models_selection(parameters):
         # model.add(keras.layers.GlobalAveragePooling1D())
 
         # model.add(keras.layers.Dense(5, activation='relu'))    # linear rectify
-        model.add(keras.layers.Dense(20, activation='sigmoid'))    # linear rectify
-        model.add(keras.layers.Dense(3, activation='sigmoid'))
+        model.add(keras.layers.Dense(10, activation='sigmoid'))    # linear rectify
+        # model.add(keras.layers.Dense(10, activation='sigmoid'))
         # model.add(keras.layers.Dense(10, activation='relu'))
         model.add(keras.layers.Dense(1, activation='sigmoid'))  # good or bad, so sigmoid, for the 1,0 label
 
@@ -91,7 +91,7 @@ def models_selection(parameters):
         # model.add(keras.layers.Dense(5, activation='relu'))    # linear rectify
         # model.add(keras.layers.Dense(20, activation='sigmoid'))    # linear rectify
         # model.add(keras.layers.Dense(3, activation='sigmoid'))
-        model.add(keras.layers.Dense(10, activation='relu'))
+        model.add(keras.layers.Dense(10, activation='sigmoid'))
         model.add(keras.layers.Dense(1, activation='sigmoid'))  # good or bad, so sigmoid, for the 1,0 label
 
         # check the model summary like this
@@ -121,7 +121,7 @@ def models_selection(parameters):
 
 
 def split_train_and_test(X, y, test_size):
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
     print(f'train size is {len(X_train)}')
     print(f'test size is {len(X_test)}')
     return X_train, X_test, y_train, y_test

@@ -59,7 +59,7 @@ para_MLP3 = pd.Series(index=['model_name', 'hidden_layer_sizes', 'max_iter'],
 # so that when it is logged it is easy to understand
 # today need to make this experiment kit work - -!
 
-kw_dict = {'top_holding_names': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY',
+ke_dict = {'top_holding_names': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY',
            'related_words': 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization',
            'compare_group': 'apple_pear_root bear',
            'holding+related_words': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY_biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization',
@@ -74,7 +74,10 @@ kw_dict = {'top_holding_names': 'AMGN_VRTX_BIIB_GILD_REGN_ILMN_ALXN_SGEN_INCY',
            # '': [],
            }
 
-ke_dict = {'debt': 'debt',}
+kw_dict = {'debt': 'debt',
+           'compare_group': 'apple_pear_root bear',
+           'debt_and_others': 'default_derivatives_debt_credit_crisis_gold price',
+           'economics': 'inflation_housing_investment_travel_unemployment'}
 tf_gen_0 = pd.Series(index=['model_name'],
                      data=['tf_gen_0'])
 
@@ -88,7 +91,7 @@ paras = [para_MLP1, para_MLP2, para_MLP3, tf_gen_0, tf_gen_1]
 
 
 by_day = False
-relative_to_each_other = True
+relative_to_each_other = False
 
 if by_day:
     number_of_weeks = 35
@@ -118,10 +121,10 @@ for item in kw_dict:
             for weeks_to_train in training_weeks:
 
                 m = Model(f'{item}_{relative_to_each_other}_{"by_day" if by_day else "by_week"}.csv',
-                          'BIB_end_at_2020-02-17_for_100_weeks.csv',
+                          'SPY_end_at_2020-2-23_for_100_weeks.csv',
                           para,
                           'close_open',
-                          'huh_new_results.csv')
+                          'empty.csv')
 
                 m.form_X_y(weeks_to_predict=weeks_to_train, scaled=False, div_100=False)
                 # m.fit_and_predict_cascade(test_size=a_test_size, log=True)
