@@ -77,6 +77,7 @@ import torch.nn as nn
 from torchviz import make_dot
 from torch.utils.data import Dataset, TensorDataset
 from torch.utils.data import DataLoader
+from torch.utils.data.dataset import random_split
 
 
 class CustomDataset(Dataset):
@@ -93,16 +94,17 @@ class CustomDataset(Dataset):
 
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-x_train_tensor = torch.from_numpy(x_train).float()  # .to(device)
-y_train_tensor = torch.from_numpy(y_train).float()  # .to(device)
 
-train_data = CustomDataset(x_train_tensor, y_train_tensor)
-print(train_data[0])
+# create dataset
+x_tensor = torch.from_numpy(x).float()
+y_tensor = torch.from_numpy(y).float()
+dataset = TensorDataset(x_tensor, y_tensor)
 
-train_data = TensorDataset(x_train_tensor, y_train_tensor)
-print(train_data[0])
 
-train_loader = DataLoader(dataset=train_data, batch_size=20, shuffle=True)
+train_dataset, val_dataset = random_split(dataset, [80, 20])
+
+train_loader = DataLoader(dataset=train_dataset, batch_size=16)
+val_loader = DataLoader(dataset=val_dataset, batch_size=20)
 
 # print(next(iter(train_loader)))
 
@@ -128,9 +130,50 @@ class my_model_for_linear_req(nn.Module):
     def forward(self, x):
         return self.linear(x)
 
+class my_model_cnn_trend_1d_convo(nn.Module):
+    def __init__(self):
+        super().__init__()  # because this guys is subclass of nn.Module
+        # self.a = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
+        # self.b = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
+        # Instead of our custom parameters, we use a Linear layer with single input and single output
+        # self.linear = nn.Linear(1, 1)  # 1 feature in, 1 feature out
+
+        self.conv1 = nn.Conv2d(in_channels=1, out_channels=5, kernel_size=(3, 1))
+        self.conv2 = nn.Conv2d(in_channels=5, out_channels=10, kernel_size=(3, 1))
+
+        # fully connected layers
+        self.fc1 = nn.Linear(10 * 8 * 5, 80)
+        self.fc2 = nn.Linear(80, 10)
+        self.fc3 = nn.Linear(10, 2)
+
+
+
+    def forward(self, x):
+        return self.linear(x)
+
+
+class Net(nn.Module):
+    def __init__(self):
+        super(Net, self).__init__()
+        self.conv1 = nn.Conv2d(3, 6, 5)
+        self.pool = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(6, 16, 5)
+        self.fc1 = nn.Linear(16 * 5 * 5, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
+
+    def forward(self, x):
+        x = self.pool(F.relu(self.conv1(x)))
+        x = self.pool(F.relu(self.conv2(x)))
+        x = x.view(-1, 16 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
+        return x
+
 
 # let's encapsulate the model and loss fn and optimizer
-
+# we can do a make test step here also
 
 def make_train_step(some_model, some_loss_fn, some_optimizer):
 
@@ -161,6 +204,7 @@ a_loss_fn = nn.MSELoss(reduction='mean')
 train_step = make_train_step(a_model, a_loss_fn, an_optimizer)
 
 losses = []
+val_losses = []
 
 for epoch in range(n_epochs):
 
@@ -201,6 +245,14 @@ for epoch in range(n_epochs):
         loss = train_step(x_batch, y_batch)
         # print(x_batch.size())
         losses.append(loss)
+
+    with torch.no_grad():
+        for x_val, y_val in val_loader:
+            a_model.eval()
+
+            yhat = a_model(x_val)
+            val_loss = a_loss_fn(y_val, yhat)
+            val_losses.append(val_loss)
 
 print(a_model.state_dict())
 # print(f'len loss is {len(losses)}')

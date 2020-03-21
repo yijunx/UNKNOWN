@@ -78,6 +78,9 @@ kw_dict = {'debt': 'debt',
            'compare_group': 'apple_pear_root bear',
            'debt_and_others': 'default_derivatives_debt_credit_crisis_gold price',
            'economics': 'inflation_housing_investment_travel_unemployment'}
+# should have something as super popular words of the days...
+# so that we know what is the going on
+
 tf_gen_0 = pd.Series(index=['model_name'],
                      data=['tf_gen_0'])
 

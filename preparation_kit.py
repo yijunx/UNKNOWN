@@ -79,7 +79,8 @@ def give_week_number_to_dataframe(df):
 def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
                               predict_what=None,
                               scaled=False,
-                              div_100=True):
+                              div_100=True,
+                              flatten=True):
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-02-10_end_at_2020-2-7_for_100_weeks.csv'
 
@@ -119,6 +120,12 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
     week_summary['Close'] = [full_date_stock_df.loc[date, 'Close'] for date in week_summary.Close_date]
     week_summary['close_open'] = week_summary.Close - week_summary.Open  # can be easily 1 or 0 it is binary
     week_summary['close_open'] = [0 if x > 0 else 1 for x in week_summary['close_open']]
+    week_summary['close_open'] = [[0, 1] if x == 0 else [1, 0] for x in week_summary['close_open']]
+
+    # x == 0 means close - open > 0 means [0, 1]
+
+    # so the close open is like that but i dont want it like that
+    # i want (fall, rise)
 
     # now , lets clear based on the week summary to find out the x data frame
     # then we flatten x, then we can pass it to the solver
@@ -134,13 +141,16 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
             # date_mask = (data.index > start) & (data.index < end)
             # dates = data.index[date_mask]
 
-            an_input = trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :].drop(columns=['isPartial'])
+            an_input = trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :].drop(columns=['isPartial']).T
             # make an_input to a list of numbers
-            an_input = np.array(an_input).flatten()
+            if flatten:
+                an_input = np.array(an_input).flatten()
+            else:
+                an_input = np.array(an_input)
 
 
             # let's use close minus open first
-            a_target = row[predict_what]
+            a_target = np.array(row[predict_what]).T
 
             inputs.append(an_input)
             targets.append(a_target)
@@ -149,14 +159,15 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
         min_max_scaler = preprocessing.MinMaxScaler()
         return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_info, week_summary
     else:
-        return np.stack(tuple(inputs)), targets, week_info, week_summary
+        return np.stack(tuple(inputs)), np.stack(tuple(targets)), week_info, week_summary
 
 
 
 def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_to_predict=4,
                              predict_what=None,
                              scaled=False,
-                             div_100=True):
+                             div_100=True,
+                             flatten=True):
 
     if trend_file_name is None:
         trend_file_name = 'pulled_at_2020-01-30_end_at_2020-1-11_for_35_weeks.csv'
@@ -223,6 +234,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     # these are the Ys we predict, and we need to scale them
     week_summary['close_open'] = week_summary.Close - week_summary.Open  # can be easily 1 or 0 it is binary
     week_summary['close_open'] = [0 if x > 0 else 1 for x in week_summary['close_open']]
+    week_summary['close_open'] = [[0, 1] if x == 0 else [1, 0] for x in week_summary['close_open']]
     week_summary['close_low'] = (week_summary.Close - week_summary.Low) / week_summary.Open
     week_summary['high_close'] = (week_summary.High - week_summary.Close) / week_summary.Open
     week_summary['decision'] = ['short' if high_range > low_range else 'long'
@@ -254,13 +266,16 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
     for index, row in week_summary.iterrows():
 
         # now lets prepare
-        an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predict, index))][trend_columns]
+        an_input = trend_stock_df[trend_stock_df.week_number.isin(range(index - weeks_to_predict, index))][trend_columns].T
         if len(an_input) == 7 * weeks_to_predict:
             # make an_input to a list of numbers
-            an_input = np.array(an_input).flatten()
+            if flatten:
+                an_input = np.array(an_input).flatten()
+            else:
+                an_input = np.array(an_input)
             # print(an_input.size)
             # let's use close minus open first
-            a_target = row[predict_what]
+            a_target = np.array(row[predict_what]).T
 
             inputs.append(an_input)
             targets.append(a_target)
@@ -281,7 +296,7 @@ def form_X_y_from_daily_data(trend_file_name=None, stock_file_name=None, weeks_t
         min_max_scaler = preprocessing.MinMaxScaler()
         return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_numbers, week_summary
     else:
-        return np.stack(tuple(inputs)), targets, week_numbers, week_summary
+        return np.stack(tuple(inputs)), np.stack(tuple(targets)), week_numbers, week_summary
 
 
 def create_trend_files(keywords_list):

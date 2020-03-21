@@ -5,8 +5,10 @@ from preparation_kit import form_X_y_from_weekly_data
 from warp_drive import models_selection
 from warp_drive import split_train_and_test
 from supports import general_path
+from supports import find_kw_based_on_cat_name
 import pandas as pd
 import numpy as np
+
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -57,14 +59,15 @@ class Model:
     def __repr__(self):
         return f'{self.model_desc}'
 
-    def form_X_y(self, weeks_to_predict, scaled=False, div_100=True):
+    def form_X_y(self, weeks_to_predict, scaled=False, div_100=True, flatten=True):
         if self.trend_by_day:
             self.X, self.y, self.time_stamps, self.week_summary = form_X_y_from_daily_data(self.keywords_file_name,
                                                                         self.stock_file_name,
                                                                         weeks_to_predict=weeks_to_predict,
                                                                         predict_what=self.predict_what,
                                                                         scaled=scaled,
-                                                                        div_100=div_100)
+                                                                        div_100=div_100,
+                                                                        flatten=flatten)
             self.start_date = self.time_stamps[0]
             self.end_date = self.time_stamps[-1]
         else:
@@ -73,7 +76,8 @@ class Model:
                                                                          weeks_to_predict=weeks_to_predict,
                                                                          predict_what=self.predict_what,
                                                                          scaled=scaled,
-                                                                         div_100=div_100)
+                                                                         div_100=div_100,
+                                                                         flatten=flatten)
             self.start_date = self.time_stamps[0].Open_date
             self.end_date = self.time_stamps[-1].Close_date
 
@@ -280,4 +284,3 @@ if __name__ == "__main__":
     m.fit_and_predict_cascade(training_sampling_size=5, log=False)
 
     # print(m.y)
-
