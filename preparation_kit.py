@@ -142,12 +142,25 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
             # dates = data.index[date_mask]
 
             an_input = trend.loc[row.Open_date - timedelta(days=7 * weeks_to_predict):row.Open_date, :].drop(columns=['isPartial']).T
+            # here an_input is still a dataframe
+            if scaled:
+                an_input = an_input.apply(lambda x: (x - min(x)) / (max(x) - min(x)), axis=1)
+
+
             # make an_input to a list of numbers
             if flatten:
                 an_input = np.array(an_input).flatten()
             else:
                 an_input = np.array(an_input)
+            # now an_input is a numpy 2 by 2 array
 
+            # if scaled:
+            #     # print(an_input)
+            #     min_max_scaler = preprocessing.MinMaxScaler()
+            #     n_row, n_col = an_input.shape
+            #     for i in range(n_row):
+            #         # an_input[i, :] = min_max_scaler.fit_transform(an_input[i, :])
+            #         an_input[i, :] = preprocessing.normalize(an_input[i, :])
 
             # let's use close minus open first
             a_target = np.array(row[predict_what]).T
@@ -155,11 +168,11 @@ def form_X_y_from_weekly_data(trend_file_name=None, stock_file_name=None, weeks_
             inputs.append(an_input)
             targets.append(a_target)
             week_info.append(row)
-    if scaled:
-        min_max_scaler = preprocessing.MinMaxScaler()
-        return min_max_scaler.fit_transform(np.stack(tuple(inputs))), targets, week_info, week_summary
-    else:
-        return np.stack(tuple(inputs)), np.stack(tuple(targets)), week_info, week_summary
+    # if scaled:
+    #     min_max_scaler = preprocessing.MinMaxScaler()
+    #     return np.stack(min_max_scaler.fit_transform(tuple(inputs))), np.stack(tuple(targets)), week_info, week_summary
+    # else:
+    return np.stack(tuple(inputs)), np.stack(tuple(targets)), week_info, week_summary
 
 
 

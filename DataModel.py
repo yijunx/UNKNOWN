@@ -5,6 +5,7 @@ from preparation_kit import form_X_y_from_weekly_data
 from warp_drive import models_selection
 from warp_drive import split_train_and_test
 from supports import general_path
+from supports import kw_dicts
 from supports import find_kw_based_on_cat_name
 import pandas as pd
 import numpy as np
@@ -14,13 +15,12 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 
-class Model:
+class DataModel:
     """
     This model keeps track of the trend data and stock data, it can read files, generate tests and record
     and predict
     """
-    def __init__(self,
-                 keywords_file_name, stock_file_name, model_parameters, predict_what, log_file_name):
+    def __init__(self, keywords_file_name, stock_file_name, predict_what, log_file_name, model_parameters=None):
         """
 
         :param keywords_file_name:
@@ -40,7 +40,8 @@ class Model:
         self.y = []
         self.time_stamps = []
         self.weeks_to_predict = 0
-        self.keywords = self.keywords_file_name.split('_by')[0].split('_')
+        self.keyword_short_name_and_if_pull_together = self.keywords_file_name.split('_by')[0].split('_')
+        self.keywords = kw_dicts()[self.keyword_short_name_and_if_pull_together[0]].split('_')
         self.stock_name = self.stock_file_name.split('_end_at_')[0]
         self.model, self.model_desc = models_selection(self.model_para)
         self.predict_what = predict_what
@@ -274,9 +275,9 @@ if __name__ == "__main__":
     # pear_apple_beer_cool shit_by_day.csv
     # biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization_by_week.csv
     # compare_group_False_by_week.csv
-    m = Model('economics_False_by_week.csv',
+    m = DataModel('economics_False_by_week.csv',
               'SPY_end_at_2020-2-23_for_100_weeks.csv',
-              tf_gen_0,
+                  tf_gen_0,
               'close_open',
               'somefilenamehere')
 

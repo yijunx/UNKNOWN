@@ -8,7 +8,7 @@
 # to generate a lot of data
 # then the analysis kit comes to analyze them to find out the best model to fit different traits
 
-from model import Model
+from DataModel import DataModel
 import pandas as pd
 from pull_stock import pull_stock
 from pull_trend import pull_keywords_trend
@@ -123,9 +123,9 @@ for item in kw_dict:
         for a_test_size in training_test_portions:
             for weeks_to_train in training_weeks:
 
-                m = Model(f'{item}_{relative_to_each_other}_{"by_day" if by_day else "by_week"}.csv',
+                m = DataModel(f'{item}_{relative_to_each_other}_{"by_day" if by_day else "by_week"}.csv',
                           'SPY_end_at_2020-2-23_for_100_weeks.csv',
-                          para,
+                              para,
                           'close_open',
                           'empty.csv')
 

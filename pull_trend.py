@@ -5,7 +5,7 @@ import pandas as pd
 import sys
 import os
 import pathlib
-from supports import general_path
+# from supports import general_path
 
 
 def pull_keywords_trend(keywords_list,
@@ -92,56 +92,4 @@ def pull_keywords_trend(keywords_list,
     print(f'Total lines: {len(interest_over_time_df)}')
     print(interest_over_time_df)
     return interest_over_time_df
-
-
-if __name__ == "__main__":
-    # date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
-
-    # the system input position starts with 1
-    number_of_weeks = int(sys.argv[1])  # make the string into an integer
-
-    # weeks offset is the send offset number
-    # dont use weeks offset any mmore
-    input_date = sys.argv[2]  # which is string
-    end_date = datetime.strptime(input_date, '%Y-%m-%d')
-
-    # get the start day
-    start_date = end_date - timedelta(days=number_of_weeks * 7)
-
-    # conversion both to string so that we can pass to the pytrend.. (date to string.. string to date)
-    start_date = start_date.strftime('%Y-%m-%d')
-    end_date = end_date.strftime('%Y-%m-%d')
-
-    # form the time_frame
-    time_frame = f'{start_date} {end_date}'
-
-    # print some basic information
-    print()  # leave some space here
-    print(f'Pulling {number_of_weeks} weeks data, end at {input_date}')
-    print(f'End is {input_date}')
-    print(f'Start date is {start_date}')
-
-    # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
-    # before the decision is made
-    # generate the save path
-
-    # pulled_at_{datetime.today().date()}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv
-    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
-    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
-    # keywords_list = ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
-    # keywords_list = ['biotech', 'bioinformatics', 'biotechnology jobs', 'bioengineering', 'AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN', 'ALXN', 'SGEN', 'INCY']
-    # keywords_list = ['pear', 'apple', 'beer', 'cool shit']
-    keywords_list = 'biotechnology_bioinformatics_biotechnology jobs_bioengineering_investment fund_society_economy_biotechnology innovation organization'.split('_')
-    save_path = general_path()
-
-    # composition names
-    # ['AMGN', 'VRTX', 'BIIB', 'GILD', 'REGN', 'ILMN']
-    # more composition names
-    #
-    pull_keywords_trend(keywords_list=keywords_list,
-                        keyword_short_name='',
-                        time_frame=time_frame,
-                        save_folder=save_path,
-                        relative_to_each_other=False)
-
 

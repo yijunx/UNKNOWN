@@ -16,12 +16,19 @@ from sklearn.discriminant_analysis import QuadraticDiscriminantAnalysis
 from tensorflow import keras
 
 
+
+
+
 def models_selection(parameters):
     """
 
     :param parameters: pandas series...
     :return:
     """
+
+    if parameters is None:
+        return None, None
+
     model_name = parameters['model_name']
 
     if model_name == 'SVC':
