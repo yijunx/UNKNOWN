@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, TensorDataset
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
 import torch.nn.functional as F
+import math
 
 # fix the randomness
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -16,7 +17,9 @@ def get_train_and_test_data_loader_from_data_model(a_datamodel):
     y_tensor = torch.from_numpy(a_datamodel.y).float()
     dataset = TensorDataset(x_tensor, y_tensor)
 
-    train_dataset, val_dataset = random_split(dataset, [129, 40])
+    train_dataset, val_dataset = random_split(dataset,
+                                              [int(0.7 * len(a_datamodel.X)),
+                                               len(a_datamodel.X) - int(0.7 * len(a_datamodel.X))])
     train_loader = DataLoader(dataset=train_dataset)  #, batch_size=10)
     val_loader = DataLoader(dataset=val_dataset)  #, batch_size=10)
     return train_loader, val_loader
@@ -29,27 +32,27 @@ def get_train_and_test_data_loader_from_data_model(a_datamodel):
 
 # the model
 class MyModelCnnTrend1dConvo(nn.Module):
-    def __init__(self, in_channels=5, kernal_sizes=5, pool_sizes=2, weeks_to_predict=30):
+    def __init__(self, in_channels=5, kernal_size=5, pool_size=2, weeks_to_predict=30):
         super().__init__()  # because this guys is subclass of nn.Module
         # self.a = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
         # self.b = nn.Parameter(torch.randn(1, requires_grad=True, dtype=torch.float))
         # Instead of our custom parameters, we use a Linear layer with single input and single output
         # self.linear = nn.Linear(1, 1)  # 1 feature in, 1 feature out
-        self.pool = nn.MaxPool1d(pool_sizes)
+        self.pool = nn.MaxPool1d(pool_size)
         # in channel is actually number of keywords, that we use...
 
-        self.conv1 = nn.Conv1d(in_channels=in_channels, out_channels=2 * in_channels, kernel_size=kernal_sizes)
+        self.conv1 = nn.Conv1d(in_channels=in_channels, out_channels=2 * in_channels, kernel_size=kernal_size)
 
-        length = math.floor((weeks_to_predict - (kernal_sizes - 1)) / pool_sizes)
+        length = math.floor((weeks_to_predict - (kernal_size - 1)) / pool_size)
         # print(length)
         # each channel is a kw, in channel=number of kw
         # we do the process of convo...
 
         # weeks to predict = w,
-        self.conv2 = nn.Conv1d(in_channels=2 * in_channels, out_channels=3 * in_channels, kernel_size=kernal_sizes)
+        self.conv2 = nn.Conv1d(in_channels=2 * in_channels, out_channels=3 * in_channels, kernel_size=kernal_size)
 
         # now the result is 5 * (30 - (5-1) - (5-1))
-        length = math.floor((length - (kernal_sizes - 1)) / pool_sizes)
+        length = math.floor((length - (kernal_size - 1)) / pool_size)
         # print(length)
 
         # fully connected layers
@@ -80,7 +83,6 @@ class MyModelCnnTrend1dConvo(nn.Module):
         return num_features
 
 
-
 def make_train_step(some_model, some_loss_fn, some_optimizer):
 
     def train_step(x, y):
@@ -100,9 +102,16 @@ def make_train_step(some_model, some_loss_fn, some_optimizer):
 
     return train_step
 
-# now create the model
-def train_kit(n_epochs=100, lr=0.001):
-    a_model = MyModelCnnTrend1dConvo().to(device)
+
+def train_kit(train_loader, val_loader,
+              number_of_kws, weeks_to_predict, kernel_size, pool_size,
+              n_epochs=100, lr=0.001):
+
+    # create the model here
+    a_model = MyModelCnnTrend1dConvo(in_channels=number_of_kws,
+                                     weeks_to_predict=weeks_to_predict,
+                                     kernal_size=kernel_size,
+                                     pool_size=pool_size).to(device)
     # define the optimizer
 
     a_loss_fn = nn.MSELoss(reduction='mean')  # nn.BCELoss()  # CrossEntropyLoss()  # nn.MSELoss(reduction='mean')
@@ -114,7 +123,7 @@ def train_kit(n_epochs=100, lr=0.001):
     # create the function based on the parameters
     train_step = make_train_step(a_model, a_loss_fn, an_optimizer)
 
-    losses = []
+    train_losses = []
     val_losses = []
 
     for epoch in range(n_epochs):
@@ -123,7 +132,7 @@ def train_kit(n_epochs=100, lr=0.001):
         for x_batch, y_batch in train_loader:
             loss = train_step(x_batch, y_batch)
             # print(x_batch.size())
-            losses.append(loss)
+            train_losses.append(loss)
 
         with torch.no_grad():
             for x_val, y_val in val_loader:
@@ -132,7 +141,7 @@ def train_kit(n_epochs=100, lr=0.001):
                 yhat = a_model(x_val)
                 val_loss = a_loss_fn(y_val, yhat)
                 val_losses.append(val_loss)
-    return a_model
+    return a_model, train_losses, val_losses
 
 
 def eval_kit(a_val_loader, a_model):

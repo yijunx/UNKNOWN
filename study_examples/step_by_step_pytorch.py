@@ -78,6 +78,7 @@ from torchviz import make_dot
 from torch.utils.data import Dataset, TensorDataset
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
+import torch.nn.functional as F
 
 
 class CustomDataset(Dataset):

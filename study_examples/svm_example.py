@@ -9,6 +9,7 @@ x = [1, 5, 1.5, 8, 1, 9]
 y = [2, 8, 1.8, 8, 0.6, 11]
 
 X = np.array([x, y]).T
+print(f'shape of x is {X.shape}')
 
 y = [0, 1, 0, 1, 0, 1]
 
@@ -20,3 +21,4 @@ print(clf.predict([[0.5, 0.5]]))
 
 w = clf.coef_[0]
 print(w)
+
