@@ -12,14 +12,14 @@ import math
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 
-def get_train_and_test_data_loader_from_data_model(a_datamodel):
+def get_train_and_test_data_loader_from_data_model(a_datamodel, percentage_in_train_set=0.7):
     x_tensor = torch.from_numpy(a_datamodel.X).float()
     y_tensor = torch.from_numpy(a_datamodel.y).float()
     dataset = TensorDataset(x_tensor, y_tensor)
 
     train_dataset, val_dataset = random_split(dataset,
-                                              [int(0.7 * len(a_datamodel.X)),
-                                               len(a_datamodel.X) - int(0.7 * len(a_datamodel.X))])
+                                              [int(percentage_in_train_set * len(a_datamodel.X)),
+                                               len(a_datamodel.X) - int(percentage_in_train_set * len(a_datamodel.X))])
     train_loader = DataLoader(dataset=train_dataset)  #, batch_size=10)
     val_loader = DataLoader(dataset=val_dataset)  #, batch_size=10)
     return train_loader, val_loader
@@ -159,9 +159,9 @@ def eval_kit(a_val_loader, a_model):
             yhat = a_model(x_val)
             total_count += 1
 
-            print('Here is one')
-            print(yhat)
-            print(y_val)
+            # print('Here is one')
+            # print(yhat)
+            # print(y_val)
 
             # check if this is correct, then lets add to count
             if yhat.numpy()[0][0] > yhat.numpy()[0][1]:
@@ -176,14 +176,23 @@ def eval_kit(a_val_loader, a_model):
                     total_correct_count += 1
                     zero_one_correct_pre_count += 1
 
-            print()
+            # print()
 
     # need to write check accuracy
-    print(f'total accuracy: {total_correct_count / total_count}')
+    total_accuracy = total_correct_count / total_count
+    print(f'total accuracy: {total_accuracy}')
+
+    one_zero_accuracy = 0
     if one_zero_pre_count > 0:
-        print(f'those predict 1,0: {one_zero_correct_pre_count / one_zero_pre_count}')
+        one_zero_accuracy = one_zero_correct_pre_count / one_zero_pre_count
+        print(f'those predict 1,0: {one_zero_accuracy}')
+
+    zero_one_accuracy = 0
     if zero_one_pre_count > 0:
-        print(f'those predict 0,1: {zero_one_correct_pre_count / zero_one_pre_count}')
+        zero_one_accuracy = zero_one_correct_pre_count / zero_one_pre_count
+        print(f'those predict 0,1: {zero_one_accuracy}')
+
+    return total_accuracy, one_zero_accuracy, zero_one_accuracy
 
 # eval_kit(val_loader, a_model)
 # accuracy with prediction 1, 0

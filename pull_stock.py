@@ -5,6 +5,7 @@ import sys
 from supports import general_path
 import os
 
+
 def pull_stock(stock_name, start, end, save_path=None):
     df = yf.download(stock_name, start=start, end=end)
     if save_path:
@@ -14,16 +15,12 @@ def pull_stock(stock_name, start, end, save_path=None):
     return df
 
 
-if __name__ == "__main__":
-    # date_time_obj = datetime.datetime.strptime(date_time_str, '%Y-%m-%d %H:%M:%S.%f')
-
+def pull_stock_nicely(stock_name, number_of_weeks=200):
     # the system input position starts with 1
-    number_of_weeks = int(sys.argv[1])  # make the string into an integer
-
     # weeks offset is the send offset number
     # dont use weeks offset any mmore
-    input_date = sys.argv[2]  # which is string
-    end_date = datetime.strptime(input_date, '%Y-%m-%d')
+
+    end_date = datetime.now().date()
 
     # get the start day
     start_date = end_date - timedelta(days=number_of_weeks * 7)
@@ -37,16 +34,16 @@ if __name__ == "__main__":
 
     # print some basic information
     print()  # leave some space here
-    print(f'Pulling {number_of_weeks} weeks data, end at {input_date}')
-    print(f'End is {input_date}')
+    print(f'Pulling {number_of_weeks} weeks data, end at {end_date}')
+    print(f'End is {end_date}')
     print(f'Start date is {start_date}')
 
     # do the pull here, and save, need to make it auto run, it is good to do the run at monday 6 to 7 pm
     # before the decision is made
     # generate the save path
-    stock_name = 'SPY'
-    print(f"stock file name is {stock_name}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv")
+    print(f"stock file name is {stock_name}_end_at_{end_date}_for_{number_of_weeks}_weeks.csv")
     save_path = os.path.join(general_path(),
-                             f'{stock_name}_end_at_{input_date}_for_{number_of_weeks}_weeks.csv')
+                             f'{stock_name}.csv')
 
     pull_stock(stock_name=stock_name, save_path=save_path, start=start_date, end=end_date)
+

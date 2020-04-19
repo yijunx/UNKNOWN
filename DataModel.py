@@ -40,7 +40,7 @@ class DataModel:
         self.y = []
         self.time_stamps = []
         self.weeks_to_predict = 0
-        self.keyword_short_name_and_if_pull_together = self.keywords_file_name.split('_by')[0].split('_')
+        self.keyword_short_name_and_if_pull_together = self.keywords_file_name.split('_by')[0].rsplit('_', 1)
         self.keywords = kw_dicts()[self.keyword_short_name_and_if_pull_together[0]].split('_')
         self.stock_name = self.stock_file_name.split('_end_at_')[0]
         self.model, self.model_desc = models_selection(self.model_para)

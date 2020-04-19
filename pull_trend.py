@@ -5,7 +5,8 @@ import pandas as pd
 import sys
 import os
 import pathlib
-# from supports import general_path
+from supports import general_path
+from supports import kw_dicts
 
 
 def pull_keywords_trend(keywords_list,
@@ -92,4 +93,24 @@ def pull_keywords_trend(keywords_list,
     print(f'Total lines: {len(interest_over_time_df)}')
     print(interest_over_time_df)
     return interest_over_time_df
+
+
+def pull_trend_weekly(kw_small_name, number_of_weeks=200, relative_to_each_other=False):
+    # if pull by week
+    # the date is the beginning of the week...
+
+    # relative_to_each_other = False
+
+    end_date = datetime.now().date()
+    start_date = end_date - timedelta(days=number_of_weeks * 7)
+
+    # conversion both to string so that we can pass to the pytrend.. (date to string.. string to date)
+    start_date = start_date.strftime('%Y-%m-%d')
+    end_date = end_date.strftime('%Y-%m-%d')
+
+    # form the time_frame
+    time_frame = f'{start_date} {end_date}'
+
+    pull_keywords_trend(kw_dicts()[kw_small_name].split('_'), kw_small_name, time_frame=time_frame,
+                        save_folder=general_path(), relative_to_each_other=relative_to_each_other)
 
