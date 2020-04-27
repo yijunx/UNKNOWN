@@ -15,6 +15,156 @@ class Node:
         to_print = to_print + ' -> None'
         return to_print
 
+
+def nextLargerNodes(input_number_list):
+
+    # form the linked list to take the input
+    head = Node(input_number_list.pop(0))
+    node = head
+    for element in input_number_list:
+        node.next = Node(element)
+        node = node.next
+
+    print(head.print_node_and_following())
+
+    output = []
+    node = head
+    loc = 0
+    stack = []
+
+    while node:
+
+        output.append(0)
+
+        while stack and stack[-1][1] < node.data:
+            idx, number = stack.pop()
+            print(f'popped {idx}, {number}')
+            output[idx] = node.data
+            print(output)
+
+        stack.append((loc, node.data))
+        print(f'stack after append is {stack}')
+        node = node.next
+        loc = loc + 1
+
+    return output
+
+nextLargerNodes([1,7,5,1,9,2,5,1])
+
+
+# 2 7 4 3 5
+# 0 1 2 3 4
+
+
+# 7 5 4 3 2
+
+# 7 0 5 5 0
+
+# 2 7 5 4 3
+# 7 5 4 3 2
+#-7 0 0 0 0
+
+
+def facto(x: int) -> int:
+    if x >= 1:
+        return x * facto(x - 1)
+    else:
+        return 1
+
+facto(4)
+
+
+
+def oddEvenList(head):
+
+    first_even_node = head.next
+    even_node = head.next
+
+    node = head
+
+    print(node, even_node)
+
+    while True:
+
+        node.next = node.next.next
+        node = node.next
+        even_node.next = node.next
+        even_node = node.next
+
+        # stopping criteria
+        if node.next is None or node.next.next is None:
+            break
+
+        print(node, even_node)
+
+    node.next = first_even_node
+    return head
+
+node_a_1 = Node(1)
+node_a_2 = Node(2)
+node_a_3 = Node(3)
+node_a_4 = Node(4)
+node_a_5 = Node(5)
+node_a_6 = Node(6)
+node_a_1.next = node_a_2
+node_a_2.next = node_a_3
+node_a_3.next = node_a_4
+node_a_4.next = node_a_5
+node_a_5.next = node_a_6
+# x = oddEvenList(node_a_1)
+# x.print_node_and_following()
+g = [3, 2, 1, 5]
+
+def numComponents(head, G) -> int:
+
+    numCom = 0
+
+    status_list = []
+
+    node = head
+    while node:
+
+
+        if node.data in G:
+            print(f'{node.data} is in {g}')
+            G.remove(node.data)
+
+            status_list.append(1)
+        else:
+            status_list.append(0)
+
+        node = node.next
+
+    # now need to count how many groups of 1
+    print(status_list)
+    previous_item = -1
+    for item in status_list:
+        if item == 1:
+            if previous_item != 1:
+                numCom += 1
+        previous_item = item
+
+    return numCom
+numComponents(node_a_1, g)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 class MyLinkedList:
     def __init__(self, nodes_data=None):
         self.head = None
@@ -128,8 +278,36 @@ def detectCycle(head):
 
     return node
 
-detectCycle(node_a_1)
 
+def detectCycle2(head):
+
+    fast_mover = normal_mover = another_normal_mover = head
+    looped = False
+    while fast_mover or fast_mover.next:
+        fast_mover = fast_mover.next.next
+        normal_mover = normal_mover.next
+        if fast_mover is normal_mover:
+            looped = True
+            break
+    if not looped:
+        return None
+
+    while normal_mover != another_normal_mover:
+        normal_mover = normal_mover.next
+        another_normal_mover = another_normal_mover.next
+
+    return normal_mover
+
+
+
+detectCycle2(node_a_1)
+
+# 1 2 3 4 5 3 4 5 3 4 5 3 4 5
+# 1 3 5 4 3 4 4 3 4
+
+# slow : 3 + 2 = 2 outloop 1 inloop 2 inloop
+# head : 0 + 2 = out_loop
+# fast : 6 = length + in_loop
 
 
 
@@ -142,3 +320,7 @@ x.next.next = Node(3)
 x.next.next = Node(4)
 x.next = Node(5)
 x.next = Node(6)
+
+
+# odd even linked list
+
